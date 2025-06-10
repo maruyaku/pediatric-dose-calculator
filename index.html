@@ -188,10 +188,9 @@
             },
             "orapem": {
                 name: "オラペネム小児用細粒10%",
-                minDosePerKg: 80,     // 1日量 80mg/kg/日
-                maxDosePerKg: 80,     // 1日量 80mg/kg/日
-                frequency: 2,         // 1日2回（1回量: 40mg/kg/回）
-                concentration: 0.1    // 10%
+                dailyDoseMultiplier: 0.08,  // 1日量 = 0.08 × 体重(kg)
+                frequency: 2,                // 1日2回
+                concentration: 0.1           // 10%
             },
             "ozex": {
                 name: "オゼックス細粒小児用15%",
@@ -415,19 +414,25 @@
             }
             
             // 1日量を計算
-            if (medicine.skipCalculation) {
-                // 計算をスキップ（既に計算済みの値を使用）
-                return;
-            } else if (medicine.dosePerKg) {
-                // 1回量ベースの計算
-                singleDoseMg = medicine.dosePerKg * weight;  // 1回量（mg）
-                dailyDoseMg = singleDoseMg * medicine.frequency;  // 1日量（mg）
+            if (medicine.dailyDoseMultiplier) {
+                // 1日量 = 乗数 × 体重(kg)
+                dailyDoseG = medicine.dailyDoseMultiplier * weight;
+                singleDoseG = dailyDoseG / medicine.frequency;
+                
+                // 結果を表示
+                document.getElementById('resultDose').innerHTML = `${dailyDoseG.toFixed(2)} g`;
+                document.getElementById('resultSingleDose').innerHTML = `${singleDoseG.toFixed(2)} g`;
+                
+            } else if (medicine.dailyDoseMg) {
+                // 1日量が直接指定されている場合
+                dailyDoseMg = medicine.dailyDoseMg;
+                singleDoseMg = dailyDoseMg / medicine.frequency;
                 
                 // gに変換（含有率を考慮）
                 dailyDoseG = (dailyDoseMg / 1000) / medicine.concentration;
                 singleDoseG = (singleDoseMg / 1000) / medicine.concentration;
                 
-                // 結果を表示（単一値）
+                // 結果を表示（直接指定）
                 document.getElementById('resultDose').innerHTML = `${dailyDoseG.toFixed(2)} g`;
                 document.getElementById('resultSingleDose').innerHTML = `${singleDoseG.toFixed(2)} g`;
             } else if (medicine.minDosePerKg === medicine.maxDosePerKg) {
