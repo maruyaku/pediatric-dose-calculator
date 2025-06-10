@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>シンプルな小児薬用量計算ツール</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input, button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>小児薬用量計算ツール</h1>
+    
+    <div class="form-group">
+        <label for="medicine">薬剤を選択:</label>
+        <select id="medicine">
+            <option value="">-- 薬剤を選択 --</option>
+            <option value="acetaminophen">アセトアミノフェンDS40%「三和」</option>
+            <option value="orapem">オラペネム小児用細粒10%</option>
+            <option value="ozex">オゼックス細粒小児用15%</option>
+            <option value="carnal20">カロナール細粒20%</option>
+            <option value="carnal50">カロナール細粒50%</option>
+            <option value="clarith">クラリスロマイシン小児用細粒10%</option>
+            <option value="cefzon">セフゾン細粒小児用10%</option>
+            <option value="farom">ファロムDS小児用10%</option>
+            <option value="meiact">メイアクトMS小児用細粒10%</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="weight">体重 (kg):</label>
+        <input type="text" id="weight" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 15.5">
+    </div>
+    
+    <button id="calculateBtn">計算する</button>
+    
+    <div id="result">
+        <h3>計算結果</h3>
+        <p><strong>薬剤名:</strong> <span id="resultMedicine">-</span></p>
+        <p><strong>1日量:</strong> <span id="resultDose">-</span></p>
+        <p><strong>1回量:</strong> <span id="resultSingleDose">-</span></p>
+        <p><strong>用法:</strong> <span id="dosageInfo">-</span></p>
+    </div>
+
+    <script>
+        // 薬剤データベース
+        const medicines = {
+            "acetaminophen": {
+                name: "アセトアミノフェンDS40%「三和」",
+                minDosePerKg: 30,   // mg/kg/日
+                maxDosePerKg: 45,    // mg/kg/日
+                frequency: 3,         // 1日3回
+                concentration: 0.4    // 40%
+            },
+            "orapem": {
+                name: "オラペネム小児用細粒10%",
+                minDosePerKg: 12,    // 1日量 12-24mg/kg/日
+                maxDosePerKg: 24,
+                frequency: 3,         // 1日3回
+                concentration: 0.1    // 10%
+            },
+            "ozex": {
+                name: "オゼックス細粒小児用15%",
+                minDosePerKg: 12,    // 1日量 12mg/kg/日
+                maxDosePerKg: 12,    // 1日量 12mg/kg/日
+                frequency: 2,         // 1日2回
+                concentration: 0.15   // 15%
+            },
+            "carnal20": {
+                name: "カロナール細粒20%",
+                minDosePerKg: 30,    // 1日量 30-45mg/kg/日
+                maxDosePerKg: 45,
+                frequency: 3,         // 1日3回
+                concentration: 0.2    // 20%
+            },
+            "carnal50": {
+                name: "カロナール細粒50%",
+                minDosePerKg: 30,    // 1日量 30-45mg/kg/日
+                maxDosePerKg: 45,
+                frequency: 3,         // 1日3回
+                concentration: 0.5    // 50%
+            },
+            "clarith": {
+                name: "クラリスロマイシン小児用細粒10%",
+                minDosePerKg: 10,   // mg/kg/日
+                maxDosePerKg: 15,    // mg/kg/日
+                frequency: 2,         // 1日2回
+                concentration: 0.1    // 10%
+            },
+            "cefzon": {
+                name: "セフゾン細粒小児用10%",
+                minDosePerKg: 9,     // 1日量 9-18mg/kg/日
+                maxDosePerKg: 18,
+                frequency: 3,         // 1日3回
+                concentration: 0.1    // 10%
+            },
+            "farom": {
+                name: "ファロムDS小児用10%",
+                minDosePerKg: 15,    // 1日量 15-30mg/kg/日
+                maxDosePerKg: 30,     // 1日量 15-30mg/kg/日
+                frequency: 3,         // 1日3回
+                concentration: 0.1    // 10%
+            },
+            "meiact": {
+                name: "メイアクトMS小児用細粒10%",
+                minDosePerKg: 9,    // mg/kg/日
+                maxDosePerKg: 9,     // mg/kg/日
+                frequency: 3,         // 1日3回
+                concentration: 0.1    // 10%
+            }
+        };
+
+        // 計算ボタンのイベントリスナー
+        document.getElementById('calculateBtn').addEventListener('click', calculateDose);
+
+        // エンターキーでも計算できるように（フォーム全体で動作するように修正）
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                calculateDose();
+            }
+        });
+
+        // 投与量を計算する関数
+        function calculateDose() {
+            const medicineId = document.getElementById('medicine').value;
+            const resultDiv = document.getElementById('result');
+            const weightInput = document.getElementById('weight').value;
+            const weight = parseFloat(weightInput);
+            
+            // 入力チェック
+            if (!medicineId) {
+                alert('薬剤を選択してください');
+                return;
+            }
+            
+            if (isNaN(weight) || weight <= 0) {
+                alert('正しい体重を入力してください（0より大きい数値）');
+                return;
+            }
+            
+            const medicine = medicines[medicineId];
+            let dailyDoseMg, singleDoseMg, dailyDoseG, singleDoseG;
+            
+            // 1日量を計算
+            if (medicine.dosePerKg) {
+                // 1回量ベースの計算
+                singleDoseMg = medicine.dosePerKg * weight;  // 1回量（mg）
+                dailyDoseMg = singleDoseMg * medicine.frequency;  // 1日量（mg）
+                
+                // gに変換（含有率を考慮）
+                dailyDoseG = (dailyDoseMg / 1000) / medicine.concentration;
+                singleDoseG = (singleDoseMg / 1000) / medicine.concentration;
+                
+                // 結果を表示（単一値）
+                document.getElementById('resultDose').innerHTML = `${dailyDoseG.toFixed(2)} g`;
+                document.getElementById('resultSingleDose').innerHTML = `${singleDoseG.toFixed(2)} g`;
+            } else if (medicine.minDosePerKg === medicine.maxDosePerKg) {
+                // 1日量に幅がない場合（単一値）
+                dailyDoseMg = medicine.minDosePerKg * weight;
+                singleDoseMg = dailyDoseMg / medicine.frequency;
+                
+                // gに変換（含有率を考慮）
+                dailyDoseG = (dailyDoseMg / 1000) / medicine.concentration;
+                singleDoseG = (singleDoseMg / 1000) / medicine.concentration;
+                
+                // 結果を表示（単一値）
+                document.getElementById('resultDose').innerHTML = `${dailyDoseG.toFixed(2)} g`;
+                document.getElementById('resultSingleDose').innerHTML = `${singleDoseG.toFixed(2)} g`;
+            } else {
+                // 1日量に幅がある場合
+                const minDailyDoseMg = medicine.minDosePerKg * weight;
+                const maxDailyDoseMg = medicine.maxDosePerKg * weight;
+                const minSingleDoseMg = minDailyDoseMg / medicine.frequency;
+                const maxSingleDoseMg = maxDailyDoseMg / medicine.frequency;
+                
+                // gに変換（含有率を考慮）
+                const minDailyDoseG = (minDailyDoseMg / 1000) / medicine.concentration;
+                const maxDailyDoseG = (maxDailyDoseMg / 1000) / medicine.concentration;
+                const minSingleDoseG = (minSingleDoseMg / 1000) / medicine.concentration;
+                const maxSingleDoseG = (maxSingleDoseMg / 1000) / medicine.concentration;
+                
+                // 結果を表示（範囲）
+                document.getElementById('resultDose').innerHTML = 
+                    `${minDailyDoseG.toFixed(2)} - ${maxDailyDoseG.toFixed(2)} g`;
+                document.getElementById('resultSingleDose').innerHTML = 
+                    `${minSingleDoseG.toFixed(2)} - ${maxSingleDoseG.toFixed(2)} g`;
+            }
+            
+            // 薬剤名と用法を表示
+            document.getElementById('resultMedicine').textContent = medicine.name;
+            document.getElementById('dosageInfo').textContent = 
+                `1日${medicine.frequency}回に分けて投与`;
+            
+            // 結果を表示
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

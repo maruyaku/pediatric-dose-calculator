@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>小児薬用量計算ツール</title>
+    <style>
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            font-size: 18px;
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            line-height: 1.6; 
+            color: #333;
+        }
+        .container { 
+            background: #f8f9fa; 
+            padding: 25px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        h1 { 
+            color: #2c3e50; 
+            text-align: center; 
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        .form-group { 
+            margin-bottom: 25px;
+        }
+        label { 
+            display: block; 
+            margin-bottom: 10px; 
+            font-weight: bold; 
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+        select, input { 
+            width: 100%; 
+            padding: 14px; 
+            border: 2px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 1.1em;
+            box-sizing: border-box;
+            margin-top: 5px;
+        }
+        button { 
+            background: #3498db; 
+            color: white; 
+            padding: 16px 20px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 1.2em;
+            font-weight: bold;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border-left: 5px solid #3498db;
+            display: none;
+        }
+        .result h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .result-item {
+            display: flex;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f1f8ff;
+            border-radius: 5px;
+        }
+        .result-label {
+            font-weight: bold;
+            min-width: 120px;
+            color: #2c3e50;
+        }
+        .result-value {
+            flex: 1;
+            font-size: 1.1em;
+        }
+        .dosage-amount {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+            .result-item {
+                flex-direction: column;
+            }
+            .result-label {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>小児薬用量計算ツール</h1>
+        
+        <div class="form-group">
+            <label for="medicine">薬剤を選択:</label>
+            <select id="medicine" onchange="updateIndications()">
+                <option value="">-- 薬剤を選択 --</option>
+            </select>
+        </div>
+        
+        <div class="form-group" id="indicationGroup" style="display: none;">
+            <label for="indication">適応症を選択:</label>
+            <select id="indication">
+                <!-- 動的に追加 -->
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="weight">体重 (kg):</label>
+            <input type="number" id="weight" step="0.1" min="0.1" placeholder="例: 15.5" onkeydown="if(event.key === 'Enter') calculateDose()">
+        </div>
+        
+        <button onclick="calculateDose()" id="calculateBtn">計算する</button>
+        
+        <div id="result" class="result">
+            <h2>計算結果</h2>
+            <div class="result-item">
+                <div class="result-label">薬剤名:</div>
+                <div class="result-value" id="resultMedicine">-</div>
+            </div>
+            <div class="result-item">
+                <div class="result-label">1日量:</div>
+                <div class="result-value"><span id="resultDose" class="dosage-amount">-</span> <span id="resultDoseUnit">g</span></div>
+            </div>
+            <div class="result-item">
+                <div class="result-label">1回量:</div>
+                <div class="result-value"><span id="resultSingleDose" class="dosage-amount">-</span> <span id="resultSingleDoseUnit">g</span></div>
+            </div>
+            <div class="result-item">
+                <div class="result-label">用法:</div>
+                <div class="result-value" id="dosageInfo">-</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 薬剤データベース
+        const medicines = {
+            "フロモックス小児用細粒10%": {
+                "用量_mg_per_kg": 9.0,
+                "含有率": 0.1,
+                "用法": "1日3回"
+            },
+            "クラリスロマイシン小児用細粒10%": {
+                "用量_mg_per_kg_min": 15,
+                "用量_mg_per_kg_max": 30,
+                "含有率": 0.1,
+                "用法": "1日2回"
+            },
+            "メイアクト小児用細粒10%": {
+                "用量_mg_per_kg": 9.0,
+                "含有率": 0.1,
+                "用法": "1日3回"
+            },
+            "オラペネム小児用細粒10%": {
+                "用量_mg_per_kg": 8.0,
+                "含有率": 0.1,
+                "用法": "1日2回"
+            },
+            "サワシリン細粒10%": {
+                "用量_mg_per_kg_min": 20,
+                "用量_mg_per_kg_max": 40,
+                "含有率": 0.1,
+                "用法": "1日3~4回"
+            },
+            "カロナール細粒20%": {
+                "用量_mg_per_kg_min": 30,
+                "用量_mg_per_kg_max": 45,
+                "含有率": 0.2,
+                "用法": "1日3~4回（1日最大60mg/kg）",
+                "最大秤取量_g": 1.5
+            },
+            "カロナール細粒50%": {
+                "用量_mg_per_kg_min": 30,
+                "用量_mg_per_kg_max": 45,
+                "含有率": 0.5,
+                "用法": "1日3~4回（1日最大60mg/kg）",
+                "最大秤取量_g": 0.6
+            },
+            "アスベリンシロップ1%": {
+                "用量_mg_per_kg": 2.0,
+                "含有率": 0.01,
+                "用法": "1日3回",
+                "単位": "mL"
+            }
+        };
+
+        // ページ読み込み時に実行される関数
+        function onload() {
+            // 薬剤リストを設定
+            const medicineSelect = document.getElementById('medicine');
+            // 既存のオプションをクリア（「-- 薬剤を選択 --」を残す）
+            while (medicineSelect.options.length > 1) {
+                medicineSelect.remove(1);
+            }
+            
+            // 薬剤をアルファベット順にソートして追加
+            const sortedMedicines = Object.keys(medicines).sort();
+            sortedMedicines.forEach(medicine => {
+                const option = document.createElement('option');
+                option.value = medicine;
+                option.textContent = medicine;
+                medicineSelect.appendChild(option);
+            });
+            
+            // 体重入力欄にフォーカス
+            document.getElementById('weight').focus();
+            
+            // 計算ボタンにイベントリスナーを追加
+            document.getElementById('calculateBtn').addEventListener('click', calculateDose);
+        }
+        
+        // ページ読み込み時に実行
+        window.onload = onload;
+
+        // 適応症の選択肢を更新
+        function updateIndications() {
+            const medicineName = document.getElementById('medicine').value;
+            const indicationGroup = document.getElementById('indicationGroup');
+            const indicationSelect = document.getElementById('indication');
+            
+            // 既存の選択肢をクリア
+            indicationSelect.innerHTML = '';
+            
+            if (!medicineName || !medicines[medicineName] || !medicines[medicineName].適応症) {
+                indicationGroup.style.display = 'none';
+                return;
+            }
+            
+            // 適応症がある場合は選択肢を追加
+            indicationGroup.style.display = 'block';
+            const indications = Object.keys(medicines[medicineName].適応症);
+            
+            if (indications.length > 0) {
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = '-- 適応症を選択 --';
+                indicationSelect.appendChild(defaultOption);
+                
+                indications.forEach(indication => {
+                    const option = document.createElement('option');
+                    option.value = indication;
+                    option.textContent = indication;
+                    indicationSelect.appendChild(option);
+                });
+            }
+        }
+
+        // 投与量を適切な単位に丸める（調剤しやすい値に調整）
+        function roundDose(amount, unit) {
+            if (unit === 'mL') {
+                // 0.1mL単位で丸める
+                return Math.round(amount * 10) / 10;
+            }
+            // 0.01g単位で丸める（10mg単位）
+            return Math.round(amount * 100) / 100;
+        }
+
+        // 投与間隔を時間に変換（例："1日3回" → 8時間毎）
+        function getDosingInterval(usage) {
+            const match = usage.match(/1日(\d+)回/);
+            if (!match) return 24; // デフォルトは24時間
+            const timesPerDay = parseInt(match[1], 10);
+            return 24 / timesPerDay; // 時間間隔を返す
+        }
+
+        // 投与量を計算
+        function calculateDose() {
+            const medicineName = document.getElementById('medicine').value;
+            const weight = parseFloat(document.getElementById('weight').value);
+            const resultDiv = document.getElementById('result');
+            
+            // 入力チェック
+            if (!medicineName) {
+                alert('薬剤を選択してください');
+                return;
+            }
+            
+            if (isNaN(weight) || weight <= 0) {
+                alert('正しい体重を入力してください（0より大きい数値）');
+                return;
+            }
+            
+            // 体重が極端に大きい/小さい場合に警告
+            if (weight < 1) {
+                if (!confirm('体重が1kg未満です。正しい値を入力しましたか？')) {
+                    return;
+                }
+            } else if (weight > 100) {
+                if (!confirm('体重が100kgを超えています。正しい値を入力しましたか？')) {
+                    return;
+                }
+            }
+            
+            const medicine = medicines[medicineName];
+            let dosageInfo = '';
+            let dailyDoseMg, amount, unit = 'g';
+            
+            // 1日量を計算（g/日）
+            if (medicine.用量_mg_per_kg) {
+                // 単一の用量がある場合
+                dailyDoseMg = medicine.用量_mg_per_kg * weight;  // mg/日
+                amount = (dailyDoseMg / 1000) / medicine.含有率;  // g/日
+            } else if (medicine.用量_mg_per_kg_min && medicine.用量_mg_per_kg_max) {
+                // 用量範囲がある場合（平均値を計算）
+                const minDoseMg = medicine.用量_mg_per_kg_min * weight;
+                const maxDoseMg = medicine.用量_mg_per_kg_max * weight;
+                dailyDoseMg = (minDoseMg + maxDoseMg) / 2;  // 平均値
+                amount = (dailyDoseMg / 1000) / medicine.含有率;  // g/日
+                
+                // 用法に応じて1回量を計算
+                const frequency = getFrequency(medicine.用法);
+                const singleDoseMg = dailyDoseMg / frequency;
+                const singleDose = amount / frequency;
+                
+                // 結果表示用に丸める
+                const roundedSingleDose = roundDose(singleDose, unit);
+                
+                // 1回量を表示
+                document.getElementById('resultSingleDose').textContent = roundedSingleDose;
+                document.getElementById('resultSingleDoseUnit').textContent = unit;
+            }
+            
+            // 丸めた値からmg表示用の値を再計算
+            const roundedAmount = roundDose(amount, unit);
+            
+            // 最大秤取量のチェック
+            if (medicine[`最大秤取量_${unit}`] && roundedAmount > medicine[`最大秤取量_${unit}`]) {
+                alert(`注意: 計算された投与量が最大推奨量を超えています。医師に確認してください。`);
+            }
+            
+            // 結果を表示
+            document.getElementById('resultMedicine').textContent = medicineName;
+            document.getElementById('resultDose').textContent = roundedAmount;
+            document.getElementById('dosageInfo').textContent = medicine.用法;
+            
+            // 結果を表示
+            resultDiv.style.display = 'block';
+        }
+        
+        // 用法から1日の投与回数を取得
+        function getFrequency(usage) {
+            const match = usage.match(/(\d+)\s*回/);
+            if (match) {
+                return parseInt(match[1], 10);
+            }
+            return 1; // デフォルトは1日1回
+        }
+    </script>
+</body>
+</html>

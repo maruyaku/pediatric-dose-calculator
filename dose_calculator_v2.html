@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小児薬用量計算ツール</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .calculator {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4f8;
+            border-radius: 4px;
+            display: none;
+        }
+        .dose-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>小児薬用量計算ツール</h1>
+    
+    <div class="calculator">
+        <div class="form-group">
+            <label for="medicine">薬品名:</label>
+            <select id="medicine" onchange="updateDosageInfo()">
+                <option value="clarithromycin">クラリスロマイシン小児用細粒10%</option>
+                <option value="amoxicillin">サワシリン小児用細粒10%</option>
+                <option value="cefdinir">セフゾン小児用細粒10%</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="weight">体重 (kg):</label>
+            <input type="number" id="weight" min="0.1" step="0.1" value="10" oninput="calculate()">
+        </div>
+        
+        <div id="dosageInfo"></div>
+        
+        <div id="result">
+            <h3>計算結果</h3>
+            <div class="dose-amount" id="doseResult"></div>
+            <div id="formula"></div>
+        </div>
+    </div>
+
+    <script>
+        // 薬品データベース
+        const medicines = {
+            clarithromycin: {
+                name: 'クラリスロマイシン小児用細粒10%',
+                minDose: 10,  // mg/kg/日
+                maxDose: 15,  // mg/kg/日
+                concentration: 0.1  // 10%
+            },
+            amoxicillin: {
+                name: 'サワシリン小児用細粒10%',
+                minDose: 20,  // mg/kg/日
+                maxDose: 40,  // mg/kg/日
+                concentration: 0.1  // 10%
+            },
+            cefdinir: {
+                name: 'セフゾン小児用細粒10%',
+                minDose: 9,  // mg/kg/日
+                maxDose: 18,  // mg/kg/日
+                concentration: 0.1  // 10%
+            }
+        };
+
+        // 薬品情報を更新
+        function updateDosageInfo() {
+            const medicineId = document.getElementById('medicine').value;
+            const medicine = medicines[medicineId];
+            
+            document.getElementById('dosageInfo').innerHTML = `
+                <div class="form-group">
+                    <label>用量範囲: ${medicine.minDose} 〜 ${medicine.maxDose} mg/kg/日</label><br>
+                    <label>製剤濃度: ${medicine.concentration * 100}%</label>
+                </div>
+            `;
+            
+            calculate();
+        }
+
+        // 計算を実行
+        function calculate() {
+            const medicineId = document.getElementById('medicine').value;
+            const medicine = medicines[medicineId];
+            const weight = parseFloat(document.getElementById('weight').value);
+            
+            // 計算式: (体重 × 用量) / (1000 × 濃度)
+            const minDose = (weight * medicine.minDose) / (1000 * medicine.concentration);
+            const maxDose = (weight * medicine.maxDose) / (1000 * medicine.concentration);
+            
+            // 結果の表示（小数点以下1桁まで）
+            document.getElementById('doseResult').textContent = 
+                `${minDose.toFixed(1)} 〜 ${maxDose.toFixed(1)} g/日`;
+                
+            // 計算式の表示
+            document.getElementById('formula').innerHTML = `
+                <p>計算式: (${weight}kg × ${medicine.minDose}〜${medicine.maxDose}mg/kg/日) ÷ (1000 × ${medicine.concentration})</p>
+            `;
+            
+            // 結果を表示
+            document.getElementById('result').style.display = 'block';
+        }
+        
+        // ページ読み込み時に初期化
+        window.onload = function() {
+            updateDosageInfo();
+        };
+    </script>
+</body>
+</html>
