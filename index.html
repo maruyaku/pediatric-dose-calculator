@@ -467,6 +467,12 @@
                 dailyDoseG = (dailyDoseMg / 1000) / medicine.concentration;
                 singleDoseG = (dailyDoseMg / 1000 / medicine.frequency) / medicine.concentration;
                 
+                // 最大投与量のチェック（オノンDS10%など）
+                if (medicine.maxDailyDose && dailyDoseG > medicine.maxDailyDose) {
+                    dailyDoseG = medicine.maxDailyDose;
+                    singleDoseG = dailyDoseG / medicine.frequency;
+                }
+                
                 // 1日量の上限をチェック（ゾビラックスまたはバルトレックスで単純疱疹の場合）
                 if ((medicineId === 'zovirax' || medicineId === 'valtrex') && 
                     document.getElementById('indication').value === 'herpesSimplex' &&
