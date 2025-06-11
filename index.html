@@ -298,6 +298,7 @@
             "tamiflu": {
                 name: "タミフルDS3%(幼小児に限る)",
                 dailyDosePerKg: 0.133, // 1日量 0.133g/kg
+                maxDailyDose: 5,      // 1日量の最大値 5g
                 frequency: 2,         // 1日2回
                 concentration: 0.03   // 3%
             }
@@ -423,7 +424,13 @@
             // 1日量を計算
             if (medicine.dailyDosePerKg) {
                 // 1日量ベースの計算（タミフルなど）
-                const dailyDoseG = medicine.dailyDosePerKg * weight;  // 1日量（g）
+                let dailyDoseG = medicine.dailyDosePerKg * weight;  // 1日量（g）
+                
+                // 最大投与量のチェック
+                if (medicine.maxDailyDose && dailyDoseG > medicine.maxDailyDose) {
+                    dailyDoseG = medicine.maxDailyDose;
+                }
+                
                 const singleDoseG = dailyDoseG / medicine.frequency;  // 1回量（g）
                 
                 // 結果を表示
