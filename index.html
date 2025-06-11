@@ -145,6 +145,7 @@
             <option value="cefzon">セフゾン細粒小児用10%</option>
             <option value="zovirax">ゾビラックス顆粒40%</option>
             <option value="valtrex">バルトレックス顆粒50%</option>
+            <option value="tamiflu">タミフルDS3%(幼小児に限る)</option>
             <option value="farom">ファロムDS小児用10%</option>
             <option value="flomox">フロモックス小児用細粒10%</option>
             <option value="meiact">メイアクトMS小児用細粒10%</option>
@@ -290,9 +291,15 @@
                 // 適応症によって異なるため、calculateDose関数内で設定
                 minDosePerKg: 0,     // 計算時に設定
                 maxDosePerKg: 0,      // 計算時に設定
-                frequency: 2,         // 1日2回（適応症による）
+                frequency: 3,         // 1日3回
                 concentration: 0.5,   // 50%
-                hasIndication: true   // 適応症の選択が必要
+                requiresIndication: true
+            },
+            "tamiflu": {
+                name: "タミフルDS3%(幼小児に限る)",
+                dosePerKg: 4,         // 1回量 4mg/kg
+                frequency: 2,         // 1日2回
+                concentration: 0.03   // 3%
             }
         };
 
@@ -414,7 +421,20 @@
             }
             
             // 1日量を計算
-            if (medicine.dailyDoseMultiplier) {
+            if (medicine.dosePerKg) {
+                // 1回量ベースの計算（タミフルなど）
+                const singleDoseMg = medicine.dosePerKg * weight;  // 1回量（mg）
+                const dailyDoseMg = singleDoseMg * medicine.frequency;  // 1日量（mg）
+                
+                // gに変換（含有率を考慮）
+                const dailyDoseG = (dailyDoseMg / 1000) / medicine.concentration;
+                const singleDoseG = dailyDoseG / medicine.frequency;
+                
+                // 結果を表示
+                document.getElementById('resultDose').innerHTML = `${dailyDoseG.toFixed(3)} g`;
+                document.getElementById('resultSingleDose').innerHTML = `${singleDoseG.toFixed(3)} g`;
+                document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回`;
+            } else if (medicine.dailyDoseMultiplier) {
                 // 1日量 = 乗数 × 体重(kg)
                 dailyDoseG = medicine.dailyDoseMultiplier * weight;
                 singleDoseG = dailyDoseG / medicine.frequency;
