@@ -265,10 +265,10 @@
             },
             "onon": {
                 name: "オノンDS10%",
-                minDosePerKg: 0.6,   // 1日量 0.6g/kg/日（6-12ヶ月）
-                maxDosePerKg: 1.2,   // 1日量 1.2g/kg/日（7歳以上）
-                maxDailyDose: 4.5,   // 1日量の最大値 4.5g
-                frequency: 3,         // 1日3回
+                minDosePerKg: 7,     // 1日量 7mg/kg/日
+                maxDosePerKg: 7,      // 1日量 7mg/kg/日
+                maxDailyDose: 4.5,    // 1日量の最大値 4.5g
+                frequency: 2,         // 1日2回
                 concentration: 0.1    // 10%
             },
             "erythro": {
@@ -467,10 +467,13 @@
                 dailyDoseG = (dailyDoseMg / 1000) / medicine.concentration;
                 singleDoseG = (dailyDoseMg / 1000 / medicine.frequency) / medicine.concentration;
                 
-                // 最大投与量のチェック（オノンDS10%など）
-                if (medicine.maxDailyDose && dailyDoseG > medicine.maxDailyDose) {
-                    dailyDoseG = medicine.maxDailyDose;
-                    singleDoseG = dailyDoseG / medicine.frequency;
+                // 1日量の上限をチェック（オノンDS10%など）
+                if (medicineId === 'onon') {
+                    const maxDailyDoseG = 4.5;  // 1日量の最大値 4.5g
+                    if (dailyDoseG > maxDailyDoseG) {
+                        dailyDoseG = maxDailyDoseG;
+                        singleDoseG = dailyDoseG / medicine.frequency;
+                    }
                 }
                 
                 // 1日量の上限をチェック（ゾビラックスまたはバルトレックスで単純疱疹の場合）
