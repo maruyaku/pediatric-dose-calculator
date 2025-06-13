@@ -524,6 +524,16 @@
                 document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回（1日最大0.3g/kg）`;
             }
             
+            // カロナール細粒50%の場合は追記
+            if (medicineId === 'carnal50') {
+                document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回（1日最大0.12g/kg）`;
+            }
+            
+            // アセトアミノフェンDS40%の場合は追記
+            if (medicineId === 'acetaminophen') {
+                document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回（1日最大0.15g/kg）`;
+            }
+            
             // 結果を表示
             resultDiv.style.display = 'block';
         }
