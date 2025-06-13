@@ -140,7 +140,7 @@
             <option value="orapem">オラペネム小児用細粒10%</option>
             <option value="carnal20">カロナール細粒20%</option>
             <option value="carnal50">カロナール細粒50%</option>
-            <option value="clarith">クラリスロマイシン小児用細粒10%</option>
+            <option value="clarith">クラリスDS10%小児用</option>
             <option value="sawacillin">サワシリン細粒10%</option>
             <option value="cefzon">セフゾン細粒小児用10%</option>
             <option value="zovirax">ゾビラックス顆粒40%</option>
@@ -215,7 +215,7 @@
                 concentration: 0.5    // 50%
             },
             "clarith": {
-                name: "クラリスロマイシン小児用細粒10%",
+                name: "クラリスDS10%小児用",
                 minDosePerKg: 10,   // mg/kg/日
                 maxDosePerKg: 15,    // mg/kg/日
                 frequency: 2,         // 1日2回
@@ -517,8 +517,12 @@
             
             // 薬剤名と用法を表示
             document.getElementById('resultMedicine').textContent = medicine.name;
-            document.getElementById('dosageInfo').textContent = 
-                `1日${medicine.frequency}回`;
+            document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回`;
+            
+            // カロナール細粒20%の場合は追記
+            if (medicineId === 'carnal20') {
+                document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回（1日最大0.3g/kg）`;
+            }
             
             // 結果を表示
             resultDiv.style.display = 'block';
