@@ -504,10 +504,19 @@
                 const maxSingleDoseMg = maxDailyDoseMg / medicine.frequency;
                 
                 // gに変換（含有率を考慮）
-                const minDailyDoseG = (minDailyDoseMg / 1000) / medicine.concentration;
-                const maxDailyDoseG = (maxDailyDoseMg / 1000) / medicine.concentration;
-                const minSingleDoseG = (minSingleDoseMg / 1000) / medicine.concentration;
-                const maxSingleDoseG = (maxSingleDoseMg / 1000) / medicine.concentration;
+                let minDailyDoseG = (minDailyDoseMg / 1000) / medicine.concentration;
+                let maxDailyDoseG = (maxDailyDoseMg / 1000) / medicine.concentration;
+                let minSingleDoseG = (minSingleDoseMg / 1000) / medicine.concentration;
+                let maxSingleDoseG = (maxSingleDoseMg / 1000) / medicine.concentration;
+                
+                // 1日量の上限をチェック（オノンDS10%など）
+                if (medicineId === 'onon' && medicine.maxDailyDose) {
+                    const maxDailyDoseG_limit = medicine.maxDailyDose;  // 1日量の最大値 4.5g
+                    if (maxDailyDoseG > maxDailyDoseG_limit) {
+                        maxDailyDoseG = maxDailyDoseG_limit;
+                        maxSingleDoseG = maxDailyDoseG / medicine.frequency;
+                    }
+                }
                 
                 // 結果を表示（範囲）
                 document.getElementById('resultDose').innerHTML = 
