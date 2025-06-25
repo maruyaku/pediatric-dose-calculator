@@ -21,20 +21,21 @@
             -webkit-font-smoothing: antialiased;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 25px;
         }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: bold;
+            font-size: 20px;
         }
         select, input, button {
             width: 100%;
-            padding: 12px 15px;
-            font-size: 16px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 16px 20px;
+            font-size: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
@@ -44,11 +45,11 @@
             background: #4CAF50;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 18px;
-            padding: 15px;
+            font-size: 22px;
+            padding: 18px 20px;
             margin-top: 10px;
             transition: background-color 0.3s;
             -webkit-tap-highlight-color: rgba(0,0,0,0);
@@ -131,8 +132,8 @@
     <h1>小児薬用量計算ツール</h1>
     
     <div class="form-group">
-        <label for="medicine">薬剤を選択:</label>
-        <select id="medicine">
+        <label for="medicine" style="background-color: #f3e5f5; padding: 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">💊 薬剤を選択:</label>
+        <select id="medicine" style="border: 2px solid #9c27b0;">
             <option value="">-- 薬剤を選択 --</option>
             <option value="acetaminophen">アセトアミノフェンDS40%「三和」</option>
             <option value="erythro">エリスロシンDSW20%</option>
@@ -151,6 +152,15 @@
             <option value="flomox">フロモックス小児用細粒10%</option>
             <option value="meiact">メイアクトMS小児用細粒10%</option>
             <option value="widesillin">ワイドシリン細粒20%</option>
+            <option value="allelock">アレロック顆粒0.5%</option>
+            <option value="fexofenadine">フェキソフェナジン塩酸塩DS5%</option>
+            <option value="claritin">クラリチンDS1%</option>
+            <option value="levocetirizine">レボセチリジンDS0.5%</option>
+            <option value="zyrtec">ジルテックDS1.25%</option>
+            <option value="asberin_powder">アスベリン散10%</option>
+            <option value="asberin_ds">アスベリンDS2%</option>
+            <option value="asberin_syrup05">アスベリンシロップ0.5%</option>
+            <option value="asberin_syrup2">アスベリンシロップ「調剤用」2%</option>
         </select>
     </div>
     
@@ -164,8 +174,13 @@
     </div>
     
     <div class="form-group">
-        <label for="weight">体重 (kg):</label>
-        <input type="text" id="weight" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 15.5">
+        <label for="weight" style="background-color: #e3f2fd; padding: 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">💪 体重での計算 (kg):</label>
+        <input type="text" id="weight" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 15.5" style="border: 2px solid #2196f3;">
+    </div>
+    
+    <div id="ageGroup" class="form-group" style="display: none;">
+        <label for="age" style="background-color: #fff3e0; padding: 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">🎂 年齢での計算 (歳):</label>
+        <input type="text" id="age" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 5 または 0.5" style="border: 2px solid #ff9800;">
     </div>
     
     <button id="calculateBtn">計算する</button>
@@ -303,6 +318,110 @@
                 maxDailyDose: 5,      // 1日量の最大値 5g
                 frequency: 2,         // 1日2回
                 concentration: 0.03   // 3%
+            },
+            "allelock": {
+                name: "アレロック顆粒0.5%",
+                type: "age-based",    // 年齢ベース薬剤
+                ageRanges: [
+                    { minAge: 2, maxAge: 7, dailyDoseG: 1.0 },    // 2歳以上6歳未満：1日1g
+                    { minAge: 7, maxAge: 15, dailyDoseG: 2.0 }    // 7歳以上15歳未満：1日2g
+                ],
+                frequency: 2,         // 1日2回（朝・就寝前）
+                concentration: 0.005, // 0.5%
+                requiresAge: true     // 年齢入力が必要
+            },
+            "fexofenadine": {
+                name: "フェキソフェナジン塩酸塩DS5%",
+                type: "age-based",    // 年齢ベース薬剤
+                ageRanges: [
+                    { minAge: 0.5, maxAge: 2, dailyDoseG: 0.6 },   // 0.5歳以上2歳未満：1日0.6g
+                    { minAge: 2, maxAge: 12, dailyDoseG: 1.2 },    // 2歳以上12歳未満：1日1.2g
+                    { minAge: 12, maxAge: 15, dailyDoseG: 2.4 }    // 12歳以上15歳未満：1日2.4g
+                ],
+                frequency: 2,         // 1日2回
+                concentration: 0.05,  // 5%
+                requiresAge: true     // 年齢入力が必要
+            },
+            "claritin": {
+                name: "クラリチンDS1%",
+                type: "age-based",    // 年齢ベース薬剤
+                ageRanges: [
+                    { minAge: 3, maxAge: 7, dailyDoseG: 0.5 },     // 3歳以上7歳未満：1日0.5g
+                    { minAge: 7, maxAge: 15, dailyDoseG: 1.0 }     // 7歳以上15歳未満：1日1g
+                ],
+                frequency: 1,         // 1日1回食後
+                concentration: 0.01,  // 1%
+                requiresAge: true     // 年齢入力が必要
+            },
+            "levocetirizine": {
+                name: "レボセチリジンDS0.5%",
+                type: "age-based",    // 年齢ベース薬剤
+                ageRanges: [
+                    { minAge: 0.5, maxAge: 1, dailyDoseG: 0.25, frequency: 1 },  // 0.5歳以上1歳未満：1日0.25g（1日1回）
+                    { minAge: 1, maxAge: 7, dailyDoseG: 0.5, frequency: 2 },     // 1歳以上7歳未満：1日0.5g（1日2回）
+                    { minAge: 7, maxAge: 15, dailyDoseG: 1.0, frequency: 2 }     // 7歳以上15歳未満：1日1g（1日2回）
+                ],
+                concentration: 0.005, // 0.5%
+                requiresAge: true     // 年齢入力が必要
+            },
+            "zyrtec": {
+                name: "ジルテックDS1.25%",
+                type: "age-based",    // 年齢ベース薬剤
+                ageRanges: [
+                    { minAge: 2, maxAge: 7, dailyDoseG: 0.4 },     // 2歳以上7歳未満：1日0.4g
+                    { minAge: 7, maxAge: 15, dailyDoseG: 0.8 }     // 7歳以上15歳未満：1日0.8g
+                ],
+                frequency: 2,         // 1日2回（朝食後・就寝前）
+                concentration: 0.0125, // 1.25%
+                requiresAge: true     // 年齢入力が必要
+            },
+            "asberin_powder": {
+                name: "アスベリン散10%",
+                type: "age-based",    // 年齢ベース薬剤
+                ageRanges: [
+                    { minAge: 0, maxAge: 1, minDose: 0.05, maxDose: 0.2 },    // 1歳未満：0.05～0.2g
+                    { minAge: 1, maxAge: 3, minDose: 0.1, maxDose: 0.25 },    // 1歳以上3歳未満：0.1～0.25g
+                    { minAge: 3, maxAge: 6, minDose: 0.15, maxDose: 0.4 }     // 3歳以上6歳未満：0.15～0.4g
+                ],
+                frequency: 3,         // 1日3回
+                concentration: 0.1,   // 10%
+                requiresAge: true     // 年齢入力が必要
+            },
+            "asberin_ds": {
+                name: "アスベリンDS2%",
+                type: "age-based",    // 年齢ベース薬剤
+                ageRanges: [
+                    { minAge: 0, maxAge: 1, minDose: 0.25, maxDose: 1.0 },    // 1歳未満：0.25～1g
+                    { minAge: 1, maxAge: 3, minDose: 0.5, maxDose: 1.25 },    // 1歳以上3歳未満：0.5～1.25g
+                    { minAge: 3, maxAge: 6, minDose: 0.75, maxDose: 2.0 }     // 3歳以上6歳未満：0.75～2g
+                ],
+                frequency: 3,         // 1日3回
+                concentration: 0.02,  // 2%
+                requiresAge: true     // 年齢入力が必要
+            },
+            "asberin_syrup05": {
+                name: "アスベリンシロップ0.5%",
+                type: "age-based",    // 年齢ベース薬剤
+                ageRanges: [
+                    { minAge: 0, maxAge: 1, minDose: 1, maxDose: 4, unit: "mL" },    // 1歳未満：1～4mL
+                    { minAge: 1, maxAge: 3, minDose: 2, maxDose: 5, unit: "mL" },    // 1歳以上3歳未満：2～5mL
+                    { minAge: 3, maxAge: 6, minDose: 3, maxDose: 8, unit: "mL" }     // 3歳以上6歳未満：3～8mL
+                ],
+                frequency: 3,         // 1日3回
+                concentration: 0.005, // 0.5%
+                requiresAge: true     // 年齢入力が必要
+            },
+            "asberin_syrup2": {
+                name: "アスベリンシロップ「調剤用」2%",
+                type: "age-based",    // 年齢ベース薬剤
+                ageRanges: [
+                    { minAge: 0, maxAge: 1, minDose: 0.25, maxDose: 1.0, unit: "mL" },    // 1歳未満：0.25～1mL
+                    { minAge: 1, maxAge: 3, minDose: 0.5, maxDose: 1.25, unit: "mL" },    // 1歳以上3歳未満：0.5～1.25mL
+                    { minAge: 3, maxAge: 6, minDose: 0.75, maxDose: 2.0, unit: "mL" }     // 3歳以上6歳未満：0.75～2mL
+                ],
+                frequency: 3,         // 1日3回
+                concentration: 0.02,  // 2%
+                requiresAge: true     // 年齢入力が必要
             }
         };
 
@@ -324,23 +443,33 @@
             const medicineId = this.value;
             const indicationGroup = document.getElementById('indicationGroup');
             const weightGroup = document.querySelector('label[for="weight"]').parentNode;
+            const ageGroup = document.getElementById('ageGroup');
             const indicationSelect = document.getElementById('indication');
             
             // 入力欄をリセット
             document.getElementById('weight').value = '';
+            document.getElementById('age').value = '';
             indicationSelect.value = '';
             
             // 結果を非表示
             document.getElementById('result').style.display = 'none';
             
-            // 適応症の選択が必要な薬剤かどうかで表示を切り替え
-            if (medicineId && medicines[medicineId]?.hasIndication) {
-                indicationGroup.style.display = 'block';
-                // 適応症の選択が完了するまで体重入力は非表示
+            // 年齢ベース薬剤かどうかをチェック
+            if (medicineId && medicines[medicineId]?.requiresAge) {
+                // 年齢ベース薬剤の場合
+                indicationGroup.style.display = 'none';
                 weightGroup.style.display = 'none';
+                ageGroup.style.display = 'block';
+            } else if (medicineId && medicines[medicineId]?.hasIndication) {
+                // 適応症選択が必要な薬剤の場合
+                indicationGroup.style.display = 'block';
+                weightGroup.style.display = 'none';
+                ageGroup.style.display = 'none';
             } else {
+                // 通常の体重ベース薬剤の場合
                 indicationGroup.style.display = 'none';
                 weightGroup.style.display = 'block';
+                ageGroup.style.display = 'none';
             }
         });
         
@@ -358,8 +487,7 @@
         function calculateDose() {
             const medicineId = document.getElementById('medicine').value;
             const resultDiv = document.getElementById('result');
-            const weightInput = document.getElementById('weight').value;
-            const weight = parseFloat(weightInput);
+            const medicine = JSON.parse(JSON.stringify(medicines[medicineId])); // オブジェクトをディープコピー
             
             // 入力チェック
             if (!medicineId) {
@@ -367,12 +495,92 @@
                 return;
             }
             
+            // 年齢ベース薬剤の場合
+            if (medicine?.requiresAge) {
+                const ageInput = document.getElementById('age').value;
+                const age = parseFloat(ageInput);
+                
+                if (isNaN(age) || age <= 0) {
+                    alert('正しい年齢を入力してください（0より大きい数値）');
+                    return;
+                }
+                
+                // 年齢に該当する用量を検索
+                let matchedRange = null;
+                for (const range of medicine.ageRanges) {
+                    if (age >= range.minAge && age < range.maxAge) {
+                        matchedRange = range;
+                        break;
+                    }
+                }
+                
+                if (!matchedRange) {
+                    alert(`${age}歳は対象年齢外です`);
+                    return;
+                }
+                
+                // 年齢ベースの計算
+                let dailyDoseG, singleDoseG, frequency;
+                
+                // アスベリン系薬剤（範囲指定）の場合
+                if (matchedRange.minDose && matchedRange.maxDose) {
+                    frequency = medicine.frequency;
+                    const minDose = matchedRange.minDose;
+                    const maxDose = matchedRange.maxDose;
+                    const unit = matchedRange.unit || "g";
+                    
+                    // 結果を表示
+                    document.getElementById('resultDose').innerHTML = `${minDose} - ${maxDose} ${unit}`;
+                    document.getElementById('resultSingleDose').innerHTML = `${(minDose/frequency).toFixed(2)} - ${(maxDose/frequency).toFixed(2)} ${unit}`;
+                    document.getElementById('resultMedicine').textContent = medicine.name;
+                    document.getElementById('dosageInfo').textContent = `1日${frequency}回`;
+                    
+                    // 結果を表示
+                    resultDiv.style.display = 'block';
+                    return;
+                } else {
+                    // 従来の固定用量薬剤
+                    dailyDoseG = matchedRange.dailyDoseG;
+                    // レボセチリジンは年齢範囲ごとに投与回数が異なる
+                    frequency = matchedRange.frequency || medicine.frequency;
+                    singleDoseG = dailyDoseG / frequency;
+                }
+                
+                // 結果を表示
+                document.getElementById('resultDose').innerHTML = `${dailyDoseG.toFixed(2)} g`;
+                document.getElementById('resultSingleDose').innerHTML = `${singleDoseG.toFixed(2)} g`;
+                document.getElementById('resultMedicine').textContent = medicine.name;
+                // 薬剤ごとに用法を設定
+                if (medicineId === 'allelock') {
+                    document.getElementById('dosageInfo').textContent = `1日${frequency}回（朝・就寝前）`;
+                } else if (medicineId === 'claritin') {
+                    document.getElementById('dosageInfo').textContent = `1日${frequency}回（食後）`;
+                } else if (medicineId === 'levocetirizine') {
+                    if (frequency === 1) {
+                        document.getElementById('dosageInfo').textContent = `1日${frequency}回`;
+                    } else {
+                        document.getElementById('dosageInfo').textContent = `1日${frequency}回（朝食後・就寝前）`;
+                    }
+                } else if (medicineId === 'zyrtec') {
+                    document.getElementById('dosageInfo').textContent = `1日${frequency}回（朝食後・就寝前）`;
+                } else {
+                    document.getElementById('dosageInfo').textContent = `1日${frequency}回`;
+                }
+                
+                // 結果を表示
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            // 体重ベース薬剤の場合（既存処理）
+            const weightInput = document.getElementById('weight').value;
+            const weight = parseFloat(weightInput);
+            
             if (isNaN(weight) || weight <= 0) {
                 alert('正しい体重を入力してください（0より大きい数値）');
                 return;
             }
             
-            const medicine = JSON.parse(JSON.stringify(medicines[medicineId])); // オブジェクトをディープコピー
             let dailyDoseMg, singleDoseMg, dailyDoseG, singleDoseG;
             
             // 適応症に応じて投与量を設定
