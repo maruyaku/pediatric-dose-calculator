@@ -31,6 +31,7 @@
         }
         select, input, button {
             width: 100%;
+            height: 60px;
             padding: 16px 20px;
             font-size: 20px;
             margin-bottom: 20px;
@@ -40,6 +41,7 @@
             -moz-appearance: none;
             appearance: none;
             background-color: #fff;
+            box-sizing: border-box;
         }
         button {
             background: #4CAF50;
@@ -126,6 +128,19 @@
             background-size: 12px auto;
             padding-right: 30px;
         }
+        
+        /* 入力フィールドの色分け */
+        #medicine {
+            border: 2px solid #9c27b0 !important;
+        }
+        
+        #weight {
+            border: 2px solid #2196f3 !important;
+        }
+        
+        #age {
+            border: 2px solid #ff9800 !important;
+        }
     </style>
 </head>
 <body>
@@ -175,12 +190,12 @@
     
     <div class="form-group">
         <label for="weight" style="background-color: #e3f2fd; padding: 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">💪 体重での計算 (kg):</label>
-        <input type="text" id="weight" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 15.5" style="border: 2px solid #2196f3;">
+        <input type="text" id="weight" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 15.5">
     </div>
     
     <div id="ageGroup" class="form-group" style="display: none;">
         <label for="age" style="background-color: #fff3e0; padding: 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">🎂 年齢での計算 (歳):</label>
-        <input type="text" id="age" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 5 または 0.5" style="border: 2px solid #ff9800;">
+        <input type="text" id="age" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 5 または 0.5">
     </div>
     
     <button id="calculateBtn">計算する</button>
