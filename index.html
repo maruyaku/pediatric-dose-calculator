@@ -120,6 +120,72 @@
             box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
         }
         
+        /* 薬剤検索入力欄のコンテナ */
+        .medicine-search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            border: 2px solid #9c27b0;
+            border-radius: 8px;
+            background-color: #fff;
+            box-sizing: border-box;
+            height: 60px;
+        }
+        
+        /* 入力欄のスタイル調整 */
+        .medicine-search-container input {
+            border: none !important;
+            background: transparent !important;
+            padding: 16px 40px 16px 20px !important;
+            flex: 1;
+            outline: none;
+            height: 100%;
+            box-sizing: border-box;
+            font-size: 20px;
+            margin-bottom: 0 !important;
+        }
+        
+        .medicine-search-container:focus-within {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        /* クリアボタンのスタイル */
+        .clear-button {
+            position: absolute;
+            right: 8px;
+            background: none;
+            color: #999;
+            border: none;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            display: none;
+            padding: 0;
+            font-weight: bold;
+            transition: color 0.2s ease;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            border-radius: 4px;
+        }
+        
+        .clear-button:hover {
+            color: #666;
+            background: rgba(0,0,0,0.05);
+        }
+        
+        .clear-button:active {
+            color: #333;
+            background: rgba(0,0,0,0.1);
+        }
+        
+        /* 入力欄にテキストがある時のクリアボタン表示 */
+        .medicine-search-container.has-text .clear-button {
+            display: block;
+        }
+        
         /* 選択ボックスの矢印スタイル */
         select {
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
@@ -148,7 +214,10 @@
     
     <div class="form-group">
         <label for="medicineSearch" style="background-color: #f3e5f5; padding: 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">💊 薬剤を検索・選択:</label>
-        <input type="text" id="medicineSearch" placeholder="薬剤名を入力..." style="border: 2px solid #9c27b0;">
+        <div class="medicine-search-container">
+            <input type="text" id="medicineSearch" placeholder="薬剤名を入力...">
+            <button type="button" class="clear-button" id="clearMedicineSearch" title="入力をクリア">×</button>
+        </div>
         <div id="medicineList" style="display: none; border: 1px solid #ddd; border-radius: 5px; background: white; max-height: 200px; overflow-y: auto; margin-top: 5px;"></div>
         <input type="hidden" id="selectedMedicine" name="medicine">
     </div>
@@ -411,6 +480,20 @@
                 frequency: 3,         // 1日3回
                 concentration: 0.02,  // 2%
                 requiresAge: true     // 年齢入力が必要
+            },
+            "mucodyne": {
+                name: "ムコダインシロップ5%",
+                dosePerKg: 0.6,       // 0.6mL/kg
+                frequency: 3,         // 1日3回
+                concentration: 0.05,  // 5%
+                unit: "mL"            // 単位はmL
+            },
+            "mucodyne_ds": {
+                name: "ムコダインDS50%",
+                dosePerKgG: 0.06,     // 0.06g/kg
+                frequency: 3,         // 1日3回
+                concentration: 0.5,   // 50%
+                unit: "g"             // 単位はg
             }
         };
 
@@ -443,6 +526,8 @@
             {value: "carnal50", text: "カロナール細粒50%"},
             {value: "clarith", text: "クラリスDS10%小児用"},
             {value: "claritin", text: "クラリチンDS1%"},
+            {value: "mucodyne", text: "ムコダインシロップ5%"},
+            {value: "mucodyne_ds", text: "ムコダインDS50%"},
             {value: "sawacillin", text: "サワシリン細粒10%"},
             {value: "zyrtec", text: "ジルテックDS1.25%"},
             {value: "cefzon", text: "セフゾン細粒小児用10%"},
@@ -468,12 +553,51 @@
         let selectedIndex = -1;
         let currentOptions = [];
 
+        // クリアボタンの表示制御
+        function updateClearButtonVisibility() {
+            const searchInput = document.getElementById('medicineSearch');
+            const container = searchInput.parentElement;
+            if (searchInput.value.trim() !== '') {
+                container.classList.add('has-text');
+            } else {
+                container.classList.remove('has-text');
+            }
+        }
+        
+        // クリアボタンのクリックイベント
+        document.getElementById('clearMedicineSearch').addEventListener('click', function() {
+            const searchInput = document.getElementById('medicineSearch');
+            const medicineList = document.getElementById('medicineList');
+            const selectedMedicine = document.getElementById('selectedMedicine');
+            
+            // 入力内容をクリア
+            searchInput.value = '';
+            selectedMedicine.value = '';
+            
+            // 候補リストを非表示
+            medicineList.style.display = 'none';
+            currentOptions = [];
+            selectedIndex = -1;
+            
+            // クリアボタンを非表示
+            updateClearButtonVisibility();
+            
+            // 入力欄にフォーカス
+            searchInput.focus();
+            
+            // 薬剤選択の状態をリセット
+            triggerMedicineChange('');
+        });
+        
         document.getElementById('medicineSearch').addEventListener('input', function() {
             let searchTerm = this.value;
             // ひらがなをカタカナに変換
             searchTerm = hiraganaToKatakana(searchTerm).toLowerCase();
             const medicineList = document.getElementById('medicineList');
             selectedIndex = -1; // リセット
+            
+            // クリアボタンの表示制御
+            updateClearButtonVisibility();
             
             if (searchTerm === '') {
                 medicineList.style.display = 'none';
@@ -579,6 +703,9 @@
             document.getElementById('selectedMedicine').value = value;
             document.getElementById('medicineList').style.display = 'none';
             selectedIndex = -1;
+            
+            // クリアボタンの表示制御
+            updateClearButtonVisibility();
             
             // 薬剤選択イベントを発火
             triggerMedicineChange(value);
@@ -814,6 +941,34 @@
                 // 結果を表示（直接指定）
                 document.getElementById('resultDose').innerHTML = `${dailyDoseG.toFixed(2)} g`;
                 document.getElementById('resultSingleDose').innerHTML = `${singleDoseG.toFixed(2)} g`;
+            } else if (medicine.dosePerKg && medicine.unit === "mL") {
+                // mL単位での計算（ムコダインシロップなど）
+                const dailyDoseML = medicine.dosePerKg * weight;  // 1日量（mL）
+                const singleDoseML = dailyDoseML / medicine.frequency;  // 1回量（mL）
+                
+                // 結果を表示（mL単位）
+                document.getElementById('resultDose').innerHTML = `${dailyDoseML.toFixed(2)} mL`;
+                document.getElementById('resultSingleDose').innerHTML = `${singleDoseML.toFixed(2)} mL`;
+                document.getElementById('resultMedicine').textContent = medicine.name;
+                document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回`;
+                
+                // 結果を表示
+                resultDiv.style.display = 'block';
+                return;
+            } else if (medicine.dosePerKgG && medicine.unit === "g") {
+                // g単位での直接計算（ムコダインDSなど）
+                const dailyDoseG = medicine.dosePerKgG * weight;  // 1日量（g）
+                const singleDoseG = dailyDoseG / medicine.frequency;  // 1回量（g）
+                
+                // 結果を表示（g単位）
+                document.getElementById('resultDose').innerHTML = `${dailyDoseG.toFixed(2)} g`;
+                document.getElementById('resultSingleDose').innerHTML = `${singleDoseG.toFixed(2)} g`;
+                document.getElementById('resultMedicine').textContent = medicine.name;
+                document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回`;
+                
+                // 結果を表示
+                resultDiv.style.display = 'block';
+                return;
             } else if (medicine.minDosePerKg === medicine.maxDosePerKg) {
                 // 1日量に幅がない場合（単一値）
                 dailyDoseMg = medicine.minDosePerKg * weight;
