@@ -147,36 +147,10 @@
     <h1>小児薬用量計算ツール</h1>
     
     <div class="form-group">
-        <label for="medicine" style="background-color: #f3e5f5; padding: 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">💊 薬剤を選択:</label>
-        <select id="medicine" style="border: 2px solid #9c27b0;">
-            <option value="">-- 薬剤を選択 --</option>
-            <option value="acetaminophen">アセトアミノフェンDS40%「三和」</option>
-            <option value="erythro">エリスロシンDSW20%</option>
-            <option value="ozex">オゼックス細粒小児用15%</option>
-            <option value="onon">オノンDS10%</option>
-            <option value="orapem">オラペネム小児用細粒10%</option>
-            <option value="carnal20">カロナール細粒20%</option>
-            <option value="carnal50">カロナール細粒50%</option>
-            <option value="clarith">クラリスDS10%小児用</option>
-            <option value="sawacillin">サワシリン細粒10%</option>
-            <option value="cefzon">セフゾン細粒小児用10%</option>
-            <option value="zovirax">ゾビラックス顆粒40%</option>
-            <option value="tamiflu">タミフルDS3%(幼小児に限る)</option>
-            <option value="valtrex">バルトレックス顆粒50%</option>
-            <option value="farom">ファロムDS小児用10%</option>
-            <option value="flomox">フロモックス小児用細粒10%</option>
-            <option value="meiact">メイアクトMS小児用細粒10%</option>
-            <option value="widesillin">ワイドシリン細粒20%</option>
-            <option value="allelock">アレロック顆粒0.5%</option>
-            <option value="fexofenadine">フェキソフェナジン塩酸塩DS5%</option>
-            <option value="claritin">クラリチンDS1%</option>
-            <option value="levocetirizine">レボセチリジンDS0.5%</option>
-            <option value="zyrtec">ジルテックDS1.25%</option>
-            <option value="asberin_powder">アスベリン散10%</option>
-            <option value="asberin_ds">アスベリンDS2%</option>
-            <option value="asberin_syrup05">アスベリンシロップ0.5%</option>
-            <option value="asberin_syrup2">アスベリンシロップ「調剤用」2%</option>
-        </select>
+        <label for="medicineSearch" style="background-color: #f3e5f5; padding: 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">💊 薬剤を検索・選択:</label>
+        <input type="text" id="medicineSearch" placeholder="薬剤名を入力..." style="border: 2px solid #9c27b0;">
+        <div id="medicineList" style="display: none; border: 1px solid #ddd; border-radius: 5px; background: white; max-height: 200px; overflow-y: auto; margin-top: 5px;"></div>
+        <input type="hidden" id="selectedMedicine" name="medicine">
     </div>
     
     <div id="indicationGroup" class="form-group" style="display: none;">
@@ -453,9 +427,165 @@
         });
 
 
-        // 薬剤選択時のイベントリスナー
-        document.getElementById('medicine').addEventListener('change', function() {
-            const medicineId = this.value;
+        // 薬剤検索機能
+        const allMedicines = [
+            {value: "asberin_powder", text: "アスベリン散10%"},
+            {value: "asberin_ds", text: "アスベリンDS2%"},
+            {value: "asberin_syrup05", text: "アスベリンシロップ0.5%"},
+            {value: "asberin_syrup2", text: "アスベリンシロップ「調剤用」2%"},
+            {value: "acetaminophen", text: "アセトアミノフェンDS40%「三和」"},
+            {value: "allelock", text: "アレロック顆粒0.5%"},
+            {value: "erythro", text: "エリスロシンDSW20%"},
+            {value: "ozex", text: "オゼックス細粒小児用15%"},
+            {value: "onon", text: "オノンDS10%"},
+            {value: "orapem", text: "オラペネム小児用細粒10%"},
+            {value: "carnal20", text: "カロナール細粒20%"},
+            {value: "carnal50", text: "カロナール細粒50%"},
+            {value: "clarith", text: "クラリスDS10%小児用"},
+            {value: "claritin", text: "クラリチンDS1%"},
+            {value: "sawacillin", text: "サワシリン細粒10%"},
+            {value: "zyrtec", text: "ジルテックDS1.25%"},
+            {value: "cefzon", text: "セフゾン細粒小児用10%"},
+            {value: "zovirax", text: "ゾビラックス顆粒40%"},
+            {value: "tamiflu", text: "タミフルDS3%(幼小児に限る)"},
+            {value: "valtrex", text: "バルトレックス顆粒50%"},
+            {value: "farom", text: "ファロムDS小児用10%"},
+            {value: "fexofenadine", text: "フェキソフェナジン塩酸塩DS5%"},
+            {value: "flomox", text: "フロモックス小児用細粒10%"},
+            {value: "meiact", text: "メイアクトMS小児用細粒10%"},
+            {value: "levocetirizine", text: "レボセチリジンDS0.5%"},
+            {value: "widesillin", text: "ワイドシリン細粒20%"}
+        ];
+
+        // ひらがなをカタカナに変換する関数
+        function hiraganaToKatakana(str) {
+            return str.replace(/[\u3041-\u3096]/g, function(match) {
+                var chr = match.charCodeAt(0) + 0x60;
+                return String.fromCharCode(chr);
+            });
+        }
+
+        let selectedIndex = -1;
+        let currentOptions = [];
+
+        document.getElementById('medicineSearch').addEventListener('input', function() {
+            let searchTerm = this.value;
+            // ひらがなをカタカナに変換
+            searchTerm = hiraganaToKatakana(searchTerm).toLowerCase();
+            const medicineList = document.getElementById('medicineList');
+            selectedIndex = -1; // リセット
+            
+            if (searchTerm === '') {
+                medicineList.style.display = 'none';
+                currentOptions = [];
+                return;
+            }
+            
+            // 検索条件に合う薬剤を絞り込み
+            const filteredMedicines = allMedicines.filter(medicine => 
+                medicine.text.toLowerCase().includes(searchTerm)
+            );
+            
+            currentOptions = filteredMedicines;
+            
+            if (filteredMedicines.length === 0) {
+                medicineList.innerHTML = '<div style="padding: 10px; color: #666;">該当する薬剤がありません</div>';
+                medicineList.style.display = 'block';
+                currentOptions = [];
+                return;
+            }
+            
+            // 候補リストを表示
+            medicineList.innerHTML = filteredMedicines.map((medicine, index) => 
+                `<div class="medicine-option" data-value="${medicine.value}" data-index="${index}" style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee;">${medicine.text}</div>`
+            ).join('');
+            
+            medicineList.style.display = 'block';
+            
+            // 候補クリック時の処理
+            medicineList.querySelectorAll('.medicine-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    selectMedicine(this);
+                });
+                
+                option.addEventListener('mouseover', function() {
+                    clearSelection();
+                    this.style.backgroundColor = '#f0f0f0';
+                });
+                
+                option.addEventListener('mouseout', function() {
+                    if (!this.classList.contains('selected')) {
+                        this.style.backgroundColor = '';
+                    }
+                });
+            });
+        });
+
+        // キーボード操作の処理
+        document.getElementById('medicineSearch').addEventListener('keydown', function(e) {
+            const medicineList = document.getElementById('medicineList');
+            const options = medicineList.querySelectorAll('.medicine-option');
+            
+            if (options.length === 0) return;
+            
+            switch(e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    selectedIndex = (selectedIndex + 1) % options.length;
+                    updateSelection(options);
+                    break;
+                    
+                case 'ArrowUp':
+                    e.preventDefault();
+                    selectedIndex = selectedIndex <= 0 ? options.length - 1 : selectedIndex - 1;
+                    updateSelection(options);
+                    break;
+                    
+                case 'Enter':
+                    e.preventDefault();
+                    if (selectedIndex >= 0 && options[selectedIndex]) {
+                        selectMedicine(options[selectedIndex]);
+                    }
+                    break;
+                    
+                case 'Escape':
+                    medicineList.style.display = 'none';
+                    selectedIndex = -1;
+                    break;
+            }
+        });
+
+        function updateSelection(options) {
+            clearSelection();
+            if (selectedIndex >= 0 && options[selectedIndex]) {
+                options[selectedIndex].style.backgroundColor = '#e3f2fd';
+                options[selectedIndex].classList.add('selected');
+            }
+        }
+
+        function clearSelection() {
+            const options = document.querySelectorAll('.medicine-option');
+            options.forEach(option => {
+                option.style.backgroundColor = '';
+                option.classList.remove('selected');
+            });
+        }
+
+        function selectMedicine(optionElement) {
+            const value = optionElement.getAttribute('data-value');
+            const text = optionElement.textContent;
+            
+            document.getElementById('medicineSearch').value = text;
+            document.getElementById('selectedMedicine').value = value;
+            document.getElementById('medicineList').style.display = 'none';
+            selectedIndex = -1;
+            
+            // 薬剤選択イベントを発火
+            triggerMedicineChange(value);
+        }
+        
+        // 薬剤選択時の処理を関数化
+        function triggerMedicineChange(medicineId) {
             const indicationGroup = document.getElementById('indicationGroup');
             const weightGroup = document.querySelector('label[for="weight"]').parentNode;
             const ageGroup = document.getElementById('ageGroup');
@@ -486,7 +616,8 @@
                 weightGroup.style.display = 'block';
                 ageGroup.style.display = 'none';
             }
-        });
+        }
+
         
         // 適応症選択時のイベントリスナー
         document.getElementById('indication').addEventListener('change', function() {
@@ -500,7 +631,7 @@
 
         // 投与量を計算する関数
         function calculateDose() {
-            const medicineId = document.getElementById('medicine').value;
+            const medicineId = document.getElementById('selectedMedicine').value;
             const resultDiv = document.getElementById('result');
             const medicine = JSON.parse(JSON.stringify(medicines[medicineId])); // オブジェクトをディープコピー
             
