@@ -723,19 +723,45 @@
             triggerMedicineChange('');
         });
         
+        let isComposing = false; // IME入力中フラグ
+        
+        // IME入力開始・終了の検知
+        document.getElementById('medicineSearch').addEventListener('compositionstart', function() {
+            isComposing = true;
+        });
+        
+        document.getElementById('medicineSearch').addEventListener('compositionend', function() {
+            isComposing = false;
+            // IME確定後に検索処理を実行
+            setTimeout(() => {
+                handleMedicineInput();
+            }, 50);
+        });
+        
         document.getElementById('medicineSearch').addEventListener('input', function() {
             // 薬剤選択中の場合は処理をスキップ
             if (isSelectingMedicine) {
                 return;
             }
             
-            let originalValue = this.value;
+            // IME入力中の場合は処理をスキップ
+            if (isComposing) {
+                return;
+            }
+            
+            handleMedicineInput();
+        });
+        
+        function handleMedicineInput() {
+            const searchInput = document.getElementById('medicineSearch');
+            let originalValue = searchInput.value;
+            
             // ひらがなをカタカナに変換
             let convertedValue = hiraganaToKatakana(originalValue);
             
             // 入力フィールドの値をカタカナに更新（変換された場合のみ）
             if (convertedValue !== originalValue) {
-                this.value = convertedValue;
+                searchInput.value = convertedValue;
             }
             
             let searchTerm = convertedValue.toLowerCase();
@@ -796,7 +822,7 @@
                     }
                 });
             });
-        });
+        }
 
         // キーボード操作の処理
         document.getElementById('medicineSearch').addEventListener('keydown', function(e) {
