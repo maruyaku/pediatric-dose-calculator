@@ -81,6 +81,16 @@
             padding-bottom: 8px;
         }
         
+        h1 {
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 20px auto 30px auto;
+            color: #333;
+            width: 100%;
+            display: block;
+        }
+        
         /* スマホ用スタイル */
         @media screen and (max-width: 480px) {
             body {
@@ -89,8 +99,8 @@
             }
             
             h1 {
-                font-size: 24px;
-                margin: 15px 0;
+                font-size: 28px;
+                margin: 15px 0 25px 0;
             }
             
             select, input, button {
@@ -863,9 +873,21 @@
                         if (selectedMedicine) {
                             // スマホの場合は常に体重入力に移動、デスクトップは薬剤タイプ別
                             if (isMobile()) {
-                                document.getElementById('weight').focus();
+                                setTimeout(() => {
+                                    document.getElementById('weight').focus();
+                                    // スマホでキーボードを強制表示
+                                    document.getElementById('weight').click();
+                                }, 100);
                             } else {
                                 focusNextInput();
+                            }
+                        } else {
+                            // 薬剤が選択されていない場合でもスマホでは体重入力に移動
+                            if (isMobile() && this.value.trim() !== '') {
+                                setTimeout(() => {
+                                    document.getElementById('weight').focus();
+                                    document.getElementById('weight').click();
+                                }, 100);
                             }
                         }
                     }
@@ -945,6 +967,15 @@
             // フラグをリセット
             setTimeout(() => {
                 isSelectingMedicine = false;
+                // スマホの場合はタッチ選択後に体重入力欄にフォーカス
+                if (isMobile()) {
+                    setTimeout(() => {
+                        const weightInput = document.getElementById('weight');
+                        weightInput.focus();
+                        // スマホでキーボードを確実に表示
+                        weightInput.click();
+                    }, 300);
+                }
             }, 100);
         }
         
