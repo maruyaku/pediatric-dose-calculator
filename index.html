@@ -725,6 +725,13 @@
         
         let isComposing = false; // IME入力中フラグ
         
+        // モバイルデバイス検出
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                   ('ontouchstart' in window) || 
+                   (navigator.maxTouchPoints > 0);
+        }
+        
         // IME入力開始・終了の検知
         document.getElementById('medicineSearch').addEventListener('compositionstart', function() {
             isComposing = true;
@@ -756,12 +763,14 @@
             const searchInput = document.getElementById('medicineSearch');
             let originalValue = searchInput.value;
             
-            // ひらがなをカタカナに変換
-            let convertedValue = hiraganaToKatakana(originalValue);
-            
-            // 入力フィールドの値をカタカナに更新（変換された場合のみ）
-            if (convertedValue !== originalValue) {
-                searchInput.value = convertedValue;
+            // デスクトップではひらがなをカタカナに変換、スマホでは変換をスキップ
+            let convertedValue = originalValue;
+            if (!isMobile()) {
+                convertedValue = hiraganaToKatakana(originalValue);
+                // 入力フィールドの値をカタカナに更新（変換された場合のみ）
+                if (convertedValue !== originalValue) {
+                    searchInput.value = convertedValue;
+                }
             }
             
             let searchTerm = convertedValue.toLowerCase();
@@ -852,7 +861,12 @@
                         // 薬剤が既に選択されている場合は次の入力欄へ
                         const selectedMedicine = document.getElementById('selectedMedicine').value;
                         if (selectedMedicine) {
-                            focusNextInput();
+                            // スマホの場合は常に体重入力に移動、デスクトップは薬剤タイプ別
+                            if (isMobile()) {
+                                document.getElementById('weight').focus();
+                            } else {
+                                focusNextInput();
+                            }
                         }
                     }
                     break;
