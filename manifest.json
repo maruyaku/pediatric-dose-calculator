@@ -1,11 +1,11 @@
 {
-  "name": "小児薬用量計算ツール",
-  "short_name": "小児薬計算",
+  "name": "ようりょうくん - 小児薬用量計算ツール",
+  "short_name": "ようりょうくん",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4CAF50",
-  "description": "小児の薬の適切な投与量を計算するツールです。",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "description": "薬剤師のための小児薬用量計算ツール「ようりょうくん」。簡単・正確・安全に小児の投与量を計算できます。",
   "icons": [
     {
       "src": "icon-192x192.png",

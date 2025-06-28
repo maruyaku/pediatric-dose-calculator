@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>小児薬用量計算ツール</title>
-    <meta name="description" content="小児の薬の適切な投与量を計算するツールです。">
+    <title>ようりょうくん - 小児薬用量計算ツール</title>
+    <meta name="description" content="薬剤師のための小児薬用量計算ツール「ようりょうくん」。簡単・正確・安全に小児の投与量を計算できます。">
     <meta name="theme-color" content="#4CAF50">
     <link rel="manifest" href="manifest.json">
     <style>
@@ -16,7 +16,7 @@
             padding: 15px;
             line-height: 1.6;
             color: #333;
-            background-color: #f7fafd; /* 明るい背景色を追加 */
+            background-color: #f7fafd;
             -webkit-text-size-adjust: 100%;
             -webkit-font-smoothing: antialiased;
         }
@@ -207,13 +207,14 @@
         #age {
             border: 2px solid #ff9800 !important;
         }
+        
     </style>
 </head>
 <body>
-    <h1>小児薬用量計算ツール</h1>
+    <h1>ようりょうくん</h1>
     
     <div class="form-group">
-        <label for="medicineSearch" style="background-color: #f3e5f5; padding: 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">💊 薬剤を検索・選択:</label>
+        <label for="medicineSearch">💊 薬剤を検索・選択:</label>
         <div class="medicine-search-container">
             <input type="text" id="medicineSearch" placeholder="薬剤名を入力...">
             <button type="button" class="clear-button" id="clearMedicineSearch" title="入力をクリア">×</button>
@@ -231,14 +232,26 @@
         </select>
     </div>
     
-    <div class="form-group">
-        <label for="weight" style="background-color: #e3f2fd; padding: 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">💪 体重での計算 (kg):</label>
+    <div id="weightGroup" class="form-group">
+        <label for="weight">💪 体重での計算 (kg):</label>
         <input type="text" id="weight" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 15.5">
     </div>
     
     <div id="ageGroup" class="form-group" style="display: none;">
-        <label for="age" style="background-color: #fff3e0; padding: 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;">🎂 年齢での計算 (歳):</label>
+        <label for="age">🎂 年齢での計算 (歳):</label>
         <input type="text" id="age" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 5 または 0.5">
+    </div>
+    
+    <div id="weightGroupForAge" class="form-group" style="display: none;">
+        <label for="weightForAge">💪 体重 (kg):</label>
+        <input type="text" id="weightForAge" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 15.5">
+    </div>
+    
+    <div id="dosageOptionGroup" class="form-group" style="display: none;">
+        <label for="dosageOption">用法を選択:</label>
+        <select id="dosageOption">
+            <option value="">-- 用法を選択 --</option>
+        </select>
     </div>
     
     <button id="calculateBtn">計算する</button>
@@ -249,6 +262,9 @@
         <p><strong>1日量:</strong> <span id="resultDose">-</span></p>
         <p><strong>1回量:</strong> <span id="resultSingleDose">-</span></p>
         <p><strong>用法:</strong> <span id="dosageInfo">-</span></p>
+        <div id="contraindicationInfo" style="display: none; margin-top: 15px; padding: 10px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; color: #856404;">
+            <strong>⚠️ 注意:</strong> <span id="contraindicationText">-</span>
+        </div>
     </div>
 
     <script>
@@ -494,6 +510,100 @@
                 frequency: 3,         // 1日3回
                 concentration: 0.5,   // 50%
                 unit: "g"             // 単位はg
+            },
+            "mucosolvan_ds": {
+                name: "小児用ムコソルバンDS1.5%",
+                dosePerKgG: 0.06,     // 0.06g/kg
+                frequency: 3,         // 1日3回
+                concentration: 0.015, // 1.5%
+                unit: "g"             // 単位はg
+            },
+            "mucosolvan_syrup": {
+                name: "小児用ムコソルバンシロップ0.3%",
+                dosePerKg: 0.3,       // 0.3mL/kg
+                frequency: 3,         // 1日3回
+                concentration: 0.003, // 0.3%
+                unit: "mL"            // 単位はmL
+            },
+            "zaditen_ds": {
+                name: "ザジテンDS0.1%",
+                dosePerKgG: 0.06,     // 0.06g/kg
+                frequency: 2,         // 1日2回
+                concentration: 0.001, // 0.1%
+                unit: "g",            // 単位はg
+                dosageNote: "朝食後・就寝前",
+                contraindication: "禁忌：てんかん又はその既往歴のある患者"
+            },
+            "zaditen_syrup": {
+                name: "ザジテンシロップ0.02%",
+                dosePerKg: 0.3,       // 0.3mL/kg
+                frequency: 2,         // 1日2回
+                concentration: 0.0002, // 0.02%
+                unit: "mL",           // 単位はmL
+                dosageNote: "朝食後・就寝前",
+                contraindication: "禁忌：てんかん又はその既往歴のある患者"
+            },
+            "xyzal_syrup": {
+                name: "ザイザルシロップ0.05%",
+                type: "age-based",    // 年齢ベース薬剤
+                ageRanges: [
+                    { minAge: 0.5, maxAge: 1, dailyDoseML: 2.5, frequency: 1 },   // 0.5歳以上1歳未満：2.5mL（1日1回）
+                    { minAge: 1, maxAge: 7, dailyDoseML: 5.0, frequency: 2 },     // 1歳以上7歳未満：5mL（1日2回）
+                    { minAge: 7, maxAge: 15, dailyDoseML: 10.0, frequency: 2 }    // 7歳以上15歳未満：10mL（1日2回）
+                ],
+                concentration: 0.0005, // 0.05%
+                requiresAge: true,     // 年齢入力が必要
+                unit: "mL"            // 単位はmL
+            },
+            "meptin_ds": {
+                name: "メプチンDS0.005%",
+                type: "age-based-with-options", // 年齢ベース薬剤（用法選択あり）
+                ageRanges: [
+                    { 
+                        minAge: 0, 
+                        maxAge: 6, 
+                        options: [
+                            { dosePerKgG: 0.05, frequency: 2, dosageNote: "朝・就寝前" },
+                            { dosePerKgG: 0.075, frequency: 3, dosageNote: "朝・昼・就寝前" }
+                        ]
+                    },
+                    { 
+                        minAge: 6, 
+                        maxAge: 15, 
+                        options: [
+                            { dailyDoseG: 0.5, frequency: 1, dosageNote: "就寝前" },
+                            { dailyDoseG: 1.0, frequency: 2, dosageNote: "朝・就寝前" }
+                        ]
+                    }
+                ],
+                requiresAge: true,     // 年齢入力が必要
+                requiresOption: true,  // 用法選択が必要
+                unit: "g"             // 単位はg
+            },
+            "meptin_syrup": {
+                name: "メプチンシロップ5μg/mL",
+                type: "age-based-with-options", // 年齢ベース薬剤（用法選択あり）
+                ageRanges: [
+                    { 
+                        minAge: 0, 
+                        maxAge: 6, 
+                        options: [
+                            { dosePerKg: 0.5, frequency: 2, dosageNote: "朝・就寝前" },
+                            { dosePerKg: 0.75, frequency: 3, dosageNote: "朝・昼・就寝前" }
+                        ]
+                    },
+                    { 
+                        minAge: 6, 
+                        maxAge: 15, 
+                        options: [
+                            { dailyDoseML: 5, frequency: 1, dosageNote: "就寝前" },
+                            { dailyDoseML: 10, frequency: 2, dosageNote: "朝・就寝前" }
+                        ]
+                    }
+                ],
+                requiresAge: true,     // 年齢入力が必要
+                requiresOption: true,  // 用法選択が必要
+                unit: "mL"            // 単位はmL
             }
         };
 
@@ -528,7 +638,12 @@
             {value: "claritin", text: "クラリチンDS1%"},
             {value: "mucodyne", text: "ムコダインシロップ5%"},
             {value: "mucodyne_ds", text: "ムコダインDS50%"},
+            {value: "mucosolvan_ds", text: "小児用ムコソルバンDS1.5%"},
+            {value: "mucosolvan_syrup", text: "小児用ムコソルバンシロップ0.3%"},
             {value: "sawacillin", text: "サワシリン細粒10%"},
+            {value: "zaditen_ds", text: "ザジテンDS0.1%"},
+            {value: "zaditen_syrup", text: "ザジテンシロップ0.02%"},
+            {value: "xyzal_syrup", text: "ザイザルシロップ0.05%"},
             {value: "zyrtec", text: "ジルテックDS1.25%"},
             {value: "cefzon", text: "セフゾン細粒小児用10%"},
             {value: "zovirax", text: "ゾビラックス顆粒40%"},
@@ -538,6 +653,8 @@
             {value: "fexofenadine", text: "フェキソフェナジン塩酸塩DS5%"},
             {value: "flomox", text: "フロモックス小児用細粒10%"},
             {value: "meiact", text: "メイアクトMS小児用細粒10%"},
+            {value: "meptin_ds", text: "メプチンDS0.005%"},
+            {value: "meptin_syrup", text: "メプチンシロップ5μg/mL"},
             {value: "levocetirizine", text: "レボセチリジンDS0.5%"},
             {value: "widesillin", text: "ワイドシリン細粒20%"}
         ];
@@ -714,34 +831,51 @@
         // 薬剤選択時の処理を関数化
         function triggerMedicineChange(medicineId) {
             const indicationGroup = document.getElementById('indicationGroup');
-            const weightGroup = document.querySelector('label[for="weight"]').parentNode;
+            const weightGroup = document.getElementById('weightGroup');
             const ageGroup = document.getElementById('ageGroup');
+            const weightGroupForAge = document.getElementById('weightGroupForAge');
+            const dosageOptionGroup = document.getElementById('dosageOptionGroup');
             const indicationSelect = document.getElementById('indication');
+            const dosageOptionSelect = document.getElementById('dosageOption');
             
             // 入力欄をリセット
             document.getElementById('weight').value = '';
+            document.getElementById('weightForAge').value = '';
             document.getElementById('age').value = '';
             indicationSelect.value = '';
+            dosageOptionSelect.value = '';
             
             // 結果を非表示
             document.getElementById('result').style.display = 'none';
             
-            // 年齢ベース薬剤かどうかをチェック
-            if (medicineId && medicines[medicineId]?.requiresAge) {
+            // 年齢ベース薬剤（用法選択あり）の場合
+            if (medicineId && medicines[medicineId]?.type === 'age-based-with-options') {
+                indicationGroup.style.display = 'none';
+                weightGroup.style.display = 'none';
+                ageGroup.style.display = 'block';
+                weightGroupForAge.style.display = 'none'; // 年齢入力後に表示
+                dosageOptionGroup.style.display = 'none'; // 年齢入力後に表示
+            } else if (medicineId && medicines[medicineId]?.requiresAge) {
                 // 年齢ベース薬剤の場合
                 indicationGroup.style.display = 'none';
                 weightGroup.style.display = 'none';
                 ageGroup.style.display = 'block';
+                weightGroupForAge.style.display = 'none';
+                dosageOptionGroup.style.display = 'none';
             } else if (medicineId && medicines[medicineId]?.hasIndication) {
                 // 適応症選択が必要な薬剤の場合
                 indicationGroup.style.display = 'block';
                 weightGroup.style.display = 'none';
                 ageGroup.style.display = 'none';
+                weightGroupForAge.style.display = 'none';
+                dosageOptionGroup.style.display = 'none';
             } else {
                 // 通常の体重ベース薬剤の場合
                 indicationGroup.style.display = 'none';
                 weightGroup.style.display = 'block';
                 ageGroup.style.display = 'none';
+                weightGroupForAge.style.display = 'none';
+                dosageOptionGroup.style.display = 'none';
             }
         }
 
@@ -750,11 +884,72 @@
         document.getElementById('indication').addEventListener('change', function() {
             // 適応症が選択されたら体重入力欄を表示
             if (this.value) {
-                document.querySelector('label[for="weight"]').parentNode.style.display = 'block';
+                document.getElementById('weightGroup').style.display = 'block';
             } else {
-                document.querySelector('label[for="weight"]').parentNode.style.display = 'none';
+                document.getElementById('weightGroup').style.display = 'none';
             }
         });
+
+        // 年齢入力時のイベントリスナー（メプチン用）
+        document.getElementById('age').addEventListener('input', function() {
+            const medicineId = document.getElementById('selectedMedicine').value;
+            const medicine = medicines[medicineId];
+            const dosageOptionGroup = document.getElementById('dosageOptionGroup');
+            const dosageOptionSelect = document.getElementById('dosageOption');
+            
+            if (medicine?.type === 'age-based-with-options' && this.value) {
+                const age = parseFloat(this.value);
+                if (!isNaN(age) && age >= 0) {
+                    // 年齢に該当する選択肢を検索
+                    let matchedRange = null;
+                    for (const range of medicine.ageRanges) {
+                        if (age >= range.minAge && age < range.maxAge) {
+                            matchedRange = range;
+                            break;
+                        }
+                    }
+                    
+                    if (matchedRange) {
+                        // 用法選択肢を生成
+                        dosageOptionSelect.innerHTML = '<option value="">-- 用法を選択 --</option>';
+                        matchedRange.options.forEach((option, index) => {
+                            const optionText = `1日${option.frequency}回（${option.dosageNote}）`;
+                            dosageOptionSelect.innerHTML += `<option value="${index}">${optionText}</option>`;
+                        });
+                        dosageOptionGroup.style.display = 'block';
+                        
+                        // 0-6歳未満の場合は体重入力も必要
+                        if (age < 6) {
+                            document.getElementById('weightGroupForAge').style.display = 'block';
+                        } else {
+                            document.getElementById('weightGroupForAge').style.display = 'none';
+                        }
+                    } else {
+                        dosageOptionGroup.style.display = 'none';
+                        document.getElementById('weightGroupForAge').style.display = 'none';
+                    }
+                } else {
+                    dosageOptionGroup.style.display = 'none';
+                    document.getElementById('weightGroupForAge').style.display = 'none';
+                }
+            } else {
+                dosageOptionGroup.style.display = 'none';
+                document.getElementById('weightGroupForAge').style.display = 'none';
+            }
+        });
+
+        // 禁忌情報を表示する関数
+        function showContraindicationInfo(medicine) {
+            const contraindicationDiv = document.getElementById('contraindicationInfo');
+            const contraindicationText = document.getElementById('contraindicationText');
+            
+            if (medicine.contraindication) {
+                contraindicationText.textContent = medicine.contraindication;
+                contraindicationDiv.style.display = 'block';
+            } else {
+                contraindicationDiv.style.display = 'none';
+            }
+        }
 
         // 投与量を計算する関数
         function calculateDose() {
@@ -768,8 +963,90 @@
                 return;
             }
             
-            // 年齢ベース薬剤の場合
-            if (medicine?.requiresAge) {
+            // 年齢ベース薬剤（用法選択あり）の場合
+            if (medicine?.type === 'age-based-with-options') {
+                const ageInput = document.getElementById('age').value;
+                const age = parseFloat(ageInput);
+                const dosageOptionIndex = document.getElementById('dosageOption').value;
+                
+                if (isNaN(age) || age <= 0) {
+                    alert('正しい年齢を入力してください（0より大きい数値）');
+                    return;
+                }
+                
+                if (dosageOptionIndex === '') {
+                    alert('用法を選択してください');
+                    return;
+                }
+                
+                // 年齢に該当する用量を検索
+                let matchedRange = null;
+                for (const range of medicine.ageRanges) {
+                    if (age >= range.minAge && age < range.maxAge) {
+                        matchedRange = range;
+                        break;
+                    }
+                }
+                
+                if (!matchedRange) {
+                    alert(`${age}歳は対象年齢外です`);
+                    return;
+                }
+                
+                const selectedOption = matchedRange.options[parseInt(dosageOptionIndex)];
+                if (!selectedOption) {
+                    alert('選択した用法が無効です');
+                    return;
+                }
+                
+                let dailyDose, singleDose, unit;
+                
+                // 体重ベースの計算（0-6歳未満）
+                if (selectedOption.dosePerKgG || selectedOption.dosePerKg) {
+                    const weightInput = document.getElementById('weightForAge').value;
+                    const weight = parseFloat(weightInput);
+                    
+                    if (isNaN(weight) || weight <= 0) {
+                        alert('正しい体重を入力してください（0より大きい数値）');
+                        document.getElementById('weightGroupForAge').style.display = 'block';
+                        return;
+                    }
+                    
+                    if (selectedOption.dosePerKgG) {
+                        // g単位の計算
+                        dailyDose = selectedOption.dosePerKgG * weight;
+                        unit = 'g';
+                    } else {
+                        // mL単位の計算
+                        dailyDose = selectedOption.dosePerKg * weight;
+                        unit = 'mL';
+                    }
+                } else {
+                    // 固定用量（6歳以上）
+                    if (selectedOption.dailyDoseG) {
+                        dailyDose = selectedOption.dailyDoseG;
+                        unit = 'g';
+                    } else {
+                        dailyDose = selectedOption.dailyDoseML;
+                        unit = 'mL';
+                    }
+                }
+                
+                singleDose = dailyDose / selectedOption.frequency;
+                
+                // 結果を表示
+                document.getElementById('resultDose').innerHTML = `${dailyDose.toFixed(2)} ${unit}`;
+                document.getElementById('resultSingleDose').innerHTML = `${singleDose.toFixed(2)} ${unit}`;
+                document.getElementById('resultMedicine').textContent = medicine.name;
+                document.getElementById('dosageInfo').textContent = `1日${selectedOption.frequency}回（${selectedOption.dosageNote}）`;
+                
+                // 禁忌情報を表示
+                showContraindicationInfo(medicine);
+                
+                // 結果を表示
+                resultDiv.style.display = 'block';
+                return;
+            } else if (medicine?.requiresAge) {
                 const ageInput = document.getElementById('age').value;
                 const age = parseFloat(ageInput);
                 
@@ -795,8 +1072,32 @@
                 // 年齢ベースの計算
                 let dailyDoseG, singleDoseG, frequency;
                 
-                // アスベリン系薬剤（範囲指定）の場合
-                if (matchedRange.minDose && matchedRange.maxDose) {
+                // ザイザルシロップ（mL固定用量）の場合
+                if (matchedRange.dailyDoseML) {
+                    const dailyDoseML = matchedRange.dailyDoseML;
+                    frequency = matchedRange.frequency;
+                    const singleDoseML = dailyDoseML / frequency;
+                    
+                    // 結果を表示（mL単位）
+                    document.getElementById('resultDose').innerHTML = `${dailyDoseML.toFixed(1)} mL`;
+                    document.getElementById('resultSingleDose').innerHTML = `${singleDoseML.toFixed(1)} mL`;
+                    document.getElementById('resultMedicine').textContent = medicine.name;
+                    
+                    // ザイザルシロップの用法表示
+                    if (frequency === 1) {
+                        document.getElementById('dosageInfo').textContent = `1日${frequency}回`;
+                    } else {
+                        document.getElementById('dosageInfo').textContent = `1日${frequency}回（朝食後・就寝前）`;
+                    }
+                    
+                    // 禁忌情報を表示
+                    showContraindicationInfo(medicine);
+                    
+                    // 結果を表示
+                    resultDiv.style.display = 'block';
+                    return;
+                } else if (matchedRange.minDose && matchedRange.maxDose) {
+                    // アスベリン系薬剤（範囲指定）の場合
                     frequency = medicine.frequency;
                     const minDose = matchedRange.minDose;
                     const maxDose = matchedRange.maxDose;
@@ -807,6 +1108,9 @@
                     document.getElementById('resultSingleDose').innerHTML = `${(minDose/frequency).toFixed(2)} - ${(maxDose/frequency).toFixed(2)} ${unit}`;
                     document.getElementById('resultMedicine').textContent = medicine.name;
                     document.getElementById('dosageInfo').textContent = `1日${frequency}回`;
+                    
+                    // 禁忌情報を表示
+                    showContraindicationInfo(medicine);
                     
                     // 結果を表示
                     resultDiv.style.display = 'block';
@@ -839,6 +1143,9 @@
                 } else {
                     document.getElementById('dosageInfo').textContent = `1日${frequency}回`;
                 }
+                
+                // 禁忌情報を表示
+                showContraindicationInfo(medicine);
                 
                 // 結果を表示
                 resultDiv.style.display = 'block';
@@ -950,7 +1257,16 @@
                 document.getElementById('resultDose').innerHTML = `${dailyDoseML.toFixed(2)} mL`;
                 document.getElementById('resultSingleDose').innerHTML = `${singleDoseML.toFixed(2)} mL`;
                 document.getElementById('resultMedicine').textContent = medicine.name;
-                document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回`;
+                
+                // ザジテンシロップの場合は特別な用法表示
+                if (medicineId === 'zaditen_syrup') {
+                    document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回（朝食後・就寝前）`;
+                } else {
+                    document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回`;
+                }
+                
+                // 禁忌情報を表示
+                showContraindicationInfo(medicine);
                 
                 // 結果を表示
                 resultDiv.style.display = 'block';
@@ -964,7 +1280,16 @@
                 document.getElementById('resultDose').innerHTML = `${dailyDoseG.toFixed(2)} g`;
                 document.getElementById('resultSingleDose').innerHTML = `${singleDoseG.toFixed(2)} g`;
                 document.getElementById('resultMedicine').textContent = medicine.name;
-                document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回`;
+                
+                // ザジテンDSの場合は特別な用法表示
+                if (medicineId === 'zaditen_ds') {
+                    document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回（朝食後・就寝前）`;
+                } else {
+                    document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回`;
+                }
+                
+                // 禁忌情報を表示
+                showContraindicationInfo(medicine);
                 
                 // 結果を表示
                 resultDiv.style.display = 'block';
@@ -1036,7 +1361,13 @@
             
             // 薬剤名と用法を表示
             document.getElementById('resultMedicine').textContent = medicine.name;
-            document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回`;
+            
+            // ザジテンの場合は特別な用法表示
+            if (medicineId === 'zaditen_ds' || medicineId === 'zaditen_syrup') {
+                document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回（朝食後・就寝前）`;
+            } else {
+                document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回`;
+            }
             
             // カロナール細粒20%の場合は追記
             if (medicineId === 'carnal20') {
@@ -1052,6 +1383,9 @@
             if (medicineId === 'acetaminophen') {
                 document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回（1日最大0.15g/kg）`;
             }
+            
+            // 禁忌情報を表示
+            showContraindicationInfo(medicine);
             
             // 結果を表示
             resultDiv.style.display = 'block';
