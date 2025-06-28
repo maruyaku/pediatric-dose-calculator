@@ -723,38 +723,19 @@
             triggerMedicineChange('');
         });
         
-        let isComposing = false; // IME入力中フラグ
-        
-        // IME入力開始・終了の検知
-        document.getElementById('medicineSearch').addEventListener('compositionstart', function() {
-            isComposing = true;
-        });
-        
-        document.getElementById('medicineSearch').addEventListener('compositionend', function() {
-            isComposing = false;
-            // IME確定後に検索処理を実行
-            handleMedicineInput();
-        });
-        
         document.getElementById('medicineSearch').addEventListener('input', function() {
-            // IME入力中や薬剤選択中の場合は処理をスキップ
-            if (isComposing || isSelectingMedicine) {
+            // 薬剤選択中の場合は処理をスキップ
+            if (isSelectingMedicine) {
                 return;
             }
             
-            handleMedicineInput();
-        });
-        
-        function handleMedicineInput() {
-            const searchInput = document.getElementById('medicineSearch');
-            let originalValue = searchInput.value;
-            
-            // ひらがなをカタカナに変換（IME入力中でない場合のみ）
+            let originalValue = this.value;
+            // ひらがなをカタカナに変換
             let convertedValue = hiraganaToKatakana(originalValue);
             
             // 入力フィールドの値をカタカナに更新（変換された場合のみ）
-            if (convertedValue !== originalValue && !isComposing) {
-                searchInput.value = convertedValue;
+            if (convertedValue !== originalValue) {
+                this.value = convertedValue;
             }
             
             let searchTerm = convertedValue.toLowerCase();
@@ -793,13 +774,14 @@
             
             // 候補選択時の処理（スマホ対応）
             medicineList.querySelectorAll('.medicine-option').forEach(option => {
-                // タッチイベント対応
+                // タッチイベント対応（スマホ用）
                 option.addEventListener('touchend', function(e) {
                     e.preventDefault();
                     selectMedicine(this);
                 });
                 
-                option.addEventListener('click', function(e) {
+                // クリックイベント（デスクトップ用）
+                option.addEventListener('click', function() {
                     selectMedicine(this);
                 });
                 
@@ -814,7 +796,7 @@
                     }
                 });
             });
-        }
+        });
 
         // キーボード操作の処理
         document.getElementById('medicineSearch').addEventListener('keydown', function(e) {
@@ -840,6 +822,12 @@
                     e.preventDefault();
                     if (selectedIndex >= 0 && options[selectedIndex]) {
                         selectMedicine(options[selectedIndex]);
+                    } else {
+                        // 薬剤が既に選択されている場合は次の入力欄へ
+                        const selectedMedicine = document.getElementById('selectedMedicine').value;
+                        if (selectedMedicine) {
+                            focusNextInput();
+                        }
                     }
                     break;
                     
@@ -867,6 +855,31 @@
         }
 
         let isSelectingMedicine = false; // 薬剤選択中フラグ
+        
+        // 次の入力欄にフォーカスを移動する関数
+        function focusNextInput() {
+            const medicineId = document.getElementById('selectedMedicine').value;
+            const medicine = medicines[medicineId];
+            
+            if (!medicine) return;
+            
+            // 年齢ベース薬剤（用法選択あり）の場合
+            if (medicine.type === 'age-based-with-options') {
+                document.getElementById('age').focus();
+            } 
+            // 年齢ベース薬剤の場合
+            else if (medicine.requiresAge) {
+                document.getElementById('age').focus();
+            } 
+            // 適応症選択が必要な薬剤の場合
+            else if (medicine.hasIndication) {
+                document.getElementById('indication').focus();
+            } 
+            // 通常の体重ベース薬剤の場合
+            else {
+                document.getElementById('weight').focus();
+            }
+        }
         
         function selectMedicine(optionElement) {
             const value = optionElement.getAttribute('data-value');
