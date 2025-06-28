@@ -917,12 +917,33 @@
             
             if (!medicine) return;
             
-            // スマホの場合は常に体重入力に移動
+            // スマホの場合は薬剤タイプに関係なく、表示されている次の入力欄に移動
             if (isMobile()) {
                 setTimeout(() => {
+                    // 年齢ベース薬剤の場合は年齢入力に移動
+                    if (medicine.type === 'age-based-with-options' || medicine.requiresAge) {
+                        const ageInput = document.getElementById('age');
+                        if (ageInput && ageInput.offsetParent !== null) {
+                            ageInput.focus();
+                            ageInput.click();
+                            return;
+                        }
+                    }
+                    // 適応症選択が必要な薬剤の場合
+                    if (medicine.hasIndication) {
+                        const indicationInput = document.getElementById('indication');
+                        if (indicationInput && indicationInput.offsetParent !== null) {
+                            indicationInput.focus();
+                            indicationInput.click();
+                            return;
+                        }
+                    }
+                    // 通常の体重ベース薬剤の場合、または他の入力欄が表示されていない場合
                     const weightInput = document.getElementById('weight');
-                    weightInput.focus();
-                    weightInput.click();
+                    if (weightInput && weightInput.offsetParent !== null) {
+                        weightInput.focus();
+                        weightInput.click();
+                    }
                 }, 100);
                 return;
             }
