@@ -871,16 +871,8 @@
                         // 薬剤が既に選択されている場合は次の入力欄へ
                         const selectedMedicine = document.getElementById('selectedMedicine').value;
                         if (selectedMedicine) {
-                            // スマホの場合は常に体重入力に移動、デスクトップは薬剤タイプ別
-                            if (isMobile()) {
-                                setTimeout(() => {
-                                    document.getElementById('weight').focus();
-                                    // スマホでキーボードを強制表示
-                                    document.getElementById('weight').click();
-                                }, 100);
-                            } else {
-                                focusNextInput();
-                            }
+                            // 薬剤が選択済みの場合
+                            focusNextInput();
                         } else {
                             // 薬剤が選択されていない場合でもスマホでは体重入力に移動
                             if (isMobile() && this.value.trim() !== '') {
@@ -918,13 +910,24 @@
 
         let isSelectingMedicine = false; // 薬剤選択中フラグ
         
-        // 次の入力欄にフォーカスを移動する関数
+        // 次の入力欄にフォーカスを移動する関数（デスクトップ用）
         function focusNextInput() {
             const medicineId = document.getElementById('selectedMedicine').value;
             const medicine = medicines[medicineId];
             
             if (!medicine) return;
             
+            // スマホの場合は常に体重入力に移動
+            if (isMobile()) {
+                setTimeout(() => {
+                    const weightInput = document.getElementById('weight');
+                    weightInput.focus();
+                    weightInput.click();
+                }, 100);
+                return;
+            }
+            
+            // デスクトップの場合は薬剤タイプ別に移動
             // 年齢ベース薬剤（用法選択あり）の場合
             if (medicine.type === 'age-based-with-options') {
                 document.getElementById('age').focus();
