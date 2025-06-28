@@ -724,9 +724,21 @@
         });
         
         document.getElementById('medicineSearch').addEventListener('input', function() {
-            let searchTerm = this.value;
+            // 薬剤選択中の場合は処理をスキップ
+            if (isSelectingMedicine) {
+                return;
+            }
+            
+            let originalValue = this.value;
             // ひらがなをカタカナに変換
-            searchTerm = hiraganaToKatakana(searchTerm).toLowerCase();
+            let convertedValue = hiraganaToKatakana(originalValue);
+            
+            // 入力フィールドの値をカタカナに更新（変換された場合のみ）
+            if (convertedValue !== originalValue) {
+                this.value = convertedValue;
+            }
+            
+            let searchTerm = convertedValue.toLowerCase();
             const medicineList = document.getElementById('medicineList');
             selectedIndex = -1; // リセット
             
@@ -829,20 +841,33 @@
             });
         }
 
+        let isSelectingMedicine = false; // 薬剤選択中フラグ
+        
         function selectMedicine(optionElement) {
             const value = optionElement.getAttribute('data-value');
-            const text = optionElement.textContent;
+            const text = optionElement.textContent.trim();
             
-            document.getElementById('medicineSearch').value = text;
+            // 薬剤選択中フラグを設定
+            isSelectingMedicine = true;
+            
+            // 入力フィールドを直接候補の薬剤名に設定
+            const searchInput = document.getElementById('medicineSearch');
+            searchInput.value = text;
             document.getElementById('selectedMedicine').value = value;
             document.getElementById('medicineList').style.display = 'none';
             selectedIndex = -1;
+            currentOptions = [];
             
             // クリアボタンの表示制御
             updateClearButtonVisibility();
             
             // 薬剤選択イベントを発火
             triggerMedicineChange(value);
+            
+            // フラグをリセット
+            setTimeout(() => {
+                isSelectingMedicine = false;
+            }, 100);
         }
         
         // 薬剤選択時の処理を関数化
