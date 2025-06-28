@@ -604,6 +604,21 @@
                 requiresAge: true,     // 年齢入力が必要
                 requiresOption: true,  // 用法選択が必要
                 unit: "mL"            // 単位はmL
+            },
+            "kefral": {
+                name: "ケフラール細粒小児用100mg",
+                minDosePerKg: 20,    // mg/kg/日 (0.02g/kg = 20mg/kg)
+                maxDosePerKg: 40,    // mg/kg/日 (0.04g/kg = 40mg/kg)
+                frequency: 3,        // 1日3回
+                concentration: 0.1   // 100mg/g = 10%
+            },
+            "zithromax": {
+                name: "ジスロマック細粒小児用10%",
+                minDosePerKg: 10,    // mg/kg/日 (0.01g/kg = 10mg/kg)
+                maxDosePerKg: 10,    // mg/kg/日 (0.01g/kg = 10mg/kg)
+                frequency: 1,        // 1日1回
+                concentration: 0.1,  // 10%
+                dosageNote: "3日間服用"
             }
         };
 
@@ -634,6 +649,7 @@
             {value: "orapem", text: "オラペネム小児用細粒10%"},
             {value: "carnal20", text: "カロナール細粒20%"},
             {value: "carnal50", text: "カロナール細粒50%"},
+            {value: "kefral", text: "ケフラール細粒小児用100mg"},
             {value: "clarith", text: "クラリスDS10%小児用"},
             {value: "claritin", text: "クラリチンDS1%"},
             {value: "mucodyne", text: "ムコダインシロップ5%"},
@@ -646,6 +662,7 @@
             {value: "xyzal_syrup", text: "ザイザルシロップ0.05%"},
             {value: "zyrtec", text: "ジルテックDS1.25%"},
             {value: "cefzon", text: "セフゾン細粒小児用10%"},
+            {value: "zithromax", text: "ジスロマック細粒小児用10%"},
             {value: "zovirax", text: "ゾビラックス顆粒40%"},
             {value: "tamiflu", text: "タミフルDS3%(幼小児に限る)"},
             {value: "valtrex", text: "バルトレックス顆粒50%"},
@@ -1382,6 +1399,11 @@
             // アセトアミノフェンDS40%の場合は追記
             if (medicineId === 'acetaminophen') {
                 document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回（1日最大0.15g/kg）`;
+            }
+            
+            // ジスロマック細粒小児用10%の場合は追記
+            if (medicineId === 'zithromax') {
+                document.getElementById('dosageInfo').textContent = `1日${medicine.frequency}回（${medicine.dosageNote}）`;
             }
             
             // 禁忌情報を表示
