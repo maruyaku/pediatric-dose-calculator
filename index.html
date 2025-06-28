@@ -723,19 +723,38 @@
             triggerMedicineChange('');
         });
         
+        let isComposing = false; // IME入力中フラグ
+        
+        // IME入力開始・終了の検知
+        document.getElementById('medicineSearch').addEventListener('compositionstart', function() {
+            isComposing = true;
+        });
+        
+        document.getElementById('medicineSearch').addEventListener('compositionend', function() {
+            isComposing = false;
+            // IME確定後に検索処理を実行
+            handleMedicineInput();
+        });
+        
         document.getElementById('medicineSearch').addEventListener('input', function() {
-            // 薬剤選択中の場合は処理をスキップ
-            if (isSelectingMedicine) {
+            // IME入力中や薬剤選択中の場合は処理をスキップ
+            if (isComposing || isSelectingMedicine) {
                 return;
             }
             
-            let originalValue = this.value;
-            // ひらがなをカタカナに変換
+            handleMedicineInput();
+        });
+        
+        function handleMedicineInput() {
+            const searchInput = document.getElementById('medicineSearch');
+            let originalValue = searchInput.value;
+            
+            // ひらがなをカタカナに変換（IME入力中でない場合のみ）
             let convertedValue = hiraganaToKatakana(originalValue);
             
             // 入力フィールドの値をカタカナに更新（変換された場合のみ）
-            if (convertedValue !== originalValue) {
-                this.value = convertedValue;
+            if (convertedValue !== originalValue && !isComposing) {
+                searchInput.value = convertedValue;
             }
             
             let searchTerm = convertedValue.toLowerCase();
@@ -772,9 +791,15 @@
             
             medicineList.style.display = 'block';
             
-            // 候補クリック時の処理
+            // 候補選択時の処理（スマホ対応）
             medicineList.querySelectorAll('.medicine-option').forEach(option => {
-                option.addEventListener('click', function() {
+                // タッチイベント対応
+                option.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    selectMedicine(this);
+                });
+                
+                option.addEventListener('click', function(e) {
                     selectMedicine(this);
                 });
                 
@@ -789,7 +814,7 @@
                     }
                 });
             });
-        });
+        }
 
         // キーボード操作の処理
         document.getElementById('medicineSearch').addEventListener('keydown', function(e) {
