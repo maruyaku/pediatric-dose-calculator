@@ -91,6 +91,184 @@
             display: block;
         }
         
+        /* タブ切り替えスタイル */
+        .tab-container {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 15px 10px;
+            background: #e0e0e0;
+            border: none;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0;
+            height: auto;
+            border-radius: 0;
+        }
+        
+        .tab-button.active {
+            background: #66BB6A;
+            color: white;
+        }
+        
+        .tab-button:hover {
+            background: #d0d0d0;
+        }
+        
+        .tab-button.active:hover {
+            background: #5CAE60;
+        }
+        
+        /* 力価計算タブがアクティブの場合 */
+        .tab-button.active.potency-tab {
+            background: #BA68C8;
+        }
+        
+        .tab-button.active.potency-tab:hover {
+            background: #AB47BC;
+        }
+        
+        /* タブコンテンツ */
+        .tab-content {
+            display: none;
+            min-height: 400px; /* タブコンテンツの最小高さを統一 */
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* 入力フィールドの位置統一 */
+        .input-row-1 {
+            margin-bottom: 25px;
+            min-height: 120px; /* 1行目の高さを統一 */
+        }
+        
+        .input-row-2 {
+            margin-bottom: 25px;
+            min-height: 80px; /* 2行目の高さを統一 */
+        }
+        
+        /* 小児用量計算専用スタイル */
+        #dose-calculator input[type="text"],
+        #dose-calculator select,
+        #dose-calculator .medicine-search-container {
+            border: 2px solid #ddd !important;
+        }
+        
+        #dose-calculator input[type="text"]:focus,
+        #dose-calculator select:focus {
+            outline: none;
+            border-color: #66BB6A !important;
+            box-shadow: 0 0 0 2px rgba(102, 187, 106, 0.2) !important;
+        }
+        
+        #dose-calculator .medicine-search-container:focus-within {
+            border-color: #66BB6A !important;
+            box-shadow: 0 0 0 2px rgba(102, 187, 106, 0.2) !important;
+        }
+        
+        #calculateBtn {
+            background: #66BB6A !important;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 22px;
+            padding: 18px 20px;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+        
+        #calculateBtn:active {
+            background: #5CAE60 !important;
+            transform: translateY(1px);
+        }
+        
+        #calculateBtn:hover {
+            background: #5CAE60 !important;
+        }
+        
+        #result {
+            background-color: #E8F5E8 !important;
+            border: 1px solid #A5D6A7 !important;
+        }
+        
+        #result h3 {
+            color: #388E3C !important;
+            border-bottom: 1px solid #A5D6A7 !important;
+        }
+        
+        /* 力価計算専用スタイル */
+        #potency-calculator input[type="text"],
+        #potency-calculator select {
+            border: 2px solid #ddd !important;
+        }
+        
+        /* 数値入力フィールドのIME無効化 */
+        #concentration,
+        #prescribedDose,
+        #weight,
+        #weightForAge,
+        #age {
+            ime-mode: disabled !important;
+        }
+        
+        /* 薬剤検索フィールドのIMEカタカナ設定 */
+        #medicineSearch {
+            ime-mode: katakana !important;
+        }
+        
+        #potency-calculator input[type="text"]:focus,
+        #potency-calculator select:focus {
+            outline: none;
+            border-color: #BA68C8 !important;
+            box-shadow: 0 0 0 2px rgba(186, 104, 200, 0.2) !important;
+        }
+        
+        #calculatePotencyBtn {
+            background: #BA68C8 !important;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 22px;
+            padding: 18px 20px;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+        
+        #calculatePotencyBtn:active {
+            background: #AB47BC !important;
+            transform: translateY(1px);
+        }
+        
+        #calculatePotencyBtn:hover {
+            background: #AB47BC !important;
+        }
+        
+        #potencyResult {
+            background-color: #FCF4FF !important;
+            border: 1px solid #E1BEE7 !important;
+        }
+        
+        #potencyResult h3 {
+            color: #8E24AA !important;
+            border-bottom: 1px solid #E1BEE7 !important;
+        }
+        
         /* スマホ用スタイル */
         @media screen and (max-width: 480px) {
             body {
@@ -136,7 +314,7 @@
             display: flex;
             align-items: center;
             width: 100%;
-            border: 2px solid #9c27b0;
+            border: 2px solid #ddd !important;
             border-radius: 8px;
             background-color: #fff;
             box-sizing: border-box;
@@ -156,10 +334,6 @@
             margin-bottom: 0 !important;
         }
         
-        .medicine-search-container:focus-within {
-            border-color: #4CAF50;
-            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-        }
         
         /* クリアボタンのスタイル */
         .clear-button {
@@ -205,28 +379,25 @@
             padding-right: 30px;
         }
         
-        /* 入力フィールドの色分け */
-        #medicine {
-            border: 2px solid #9c27b0 !important;
-        }
-        
-        #weight {
-            border: 2px solid #2196f3 !important;
-        }
-        
-        #age {
-            border: 2px solid #ff9800 !important;
-        }
         
     </style>
 </head>
 <body>
     <h1>ようりょうくん</h1>
     
-    <div class="form-group">
+    <!-- タブ切り替えボタン -->
+    <div class="tab-container">
+        <button class="tab-button active dose-tab" onclick="switchTab('dose-calculator')">小児用量計算</button>
+        <button class="tab-button potency-tab" onclick="switchTab('potency-calculator')">力価計算</button>
+    </div>
+    
+    <!-- 小児用量計算タブ -->
+    <div id="dose-calculator" class="tab-content active">
+    
+    <div class="form-group input-row-1">
         <label for="medicineSearch">💊 薬剤を検索・選択:</label>
         <div class="medicine-search-container">
-            <input type="text" id="medicineSearch" placeholder="薬剤名を入力...">
+            <input type="text" id="medicineSearch" placeholder="薬剤名を入力..." style="ime-mode: katakana;">
             <button type="button" class="clear-button" id="clearMedicineSearch" title="入力をクリア">×</button>
         </div>
         <div id="medicineList" style="display: none; border: 1px solid #ddd; border-radius: 5px; background: white; max-height: 200px; overflow-y: auto; margin-top: 5px;"></div>
@@ -242,7 +413,7 @@
         </select>
     </div>
     
-    <div id="weightGroup" class="form-group">
+    <div id="weightGroup" class="form-group input-row-2">
         <label for="weight">💪 体重での計算 (kg):</label>
         <input type="text" id="weight" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 15.5">
     </div>
@@ -269,13 +440,45 @@
     <div id="result">
         <h3>計算結果</h3>
         <p><strong>薬剤名:</strong> <span id="resultMedicine">-</span></p>
-        <p><strong>1日量:</strong> <span id="resultDose">-</span></p>
+        <p style="font-size: 24px; color: #2E7D32; margin: 15px 0;"><strong>1日量（秤取量）:</strong> <span id="resultDose" style="font-weight: bold; font-size: 26px;">-</span></p>
         <p><strong>1回量:</strong> <span id="resultSingleDose">-</span></p>
         <p><strong>用法:</strong> <span id="dosageInfo">-</span></p>
         <div id="contraindicationInfo" style="display: none; margin-top: 15px; padding: 10px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; color: #856404;">
             <strong>⚠️ 注意:</strong> <span id="contraindicationText">-</span>
         </div>
     </div>
+    
+    </div> <!-- 小児用量計算タブ終了 -->
+    
+    <!-- 力価計算タブ -->
+    <div id="potency-calculator" class="tab-content">
+        
+        <div class="form-group input-row-1">
+            <label for="concentration">🧪 薬剤の濃度 (%):</label>
+            <input type="text" id="concentration" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 1.0" style="ime-mode: disabled;">
+        </div>
+        
+        <div class="form-group input-row-2">
+            <label for="prescribedDose">📝 処方箋記載の用量:</label>
+            <div style="display: flex; gap: 10px; align-items: stretch;">
+                <input type="text" id="prescribedDose" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" placeholder="例: 50" style="flex: 1; margin-bottom: 0; ime-mode: disabled;">
+                <select id="doseUnit" style="flex: 0 0 80px; margin-bottom: 0;">
+                    <option value="mg">mg</option>
+                    <option value="μg">μg</option>
+                </select>
+            </div>
+        </div>
+        
+        <button id="calculatePotencyBtn">力価計算する</button>
+        
+        <div id="potencyResult" style="display: none; margin-top: 25px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <h3>力価計算結果</h3>
+            <p><strong>薬剤の濃度:</strong> <span id="resultConcentration">-</span> %</p>
+            <p><strong>処方箋記載の用量:</strong> <span id="resultPrescribedDose">-</span> <span id="resultDoseUnit">-</span></p>
+            <p style="font-size: 24px; color: #6A1B9A; margin: 15px 0;"><strong>1日量（秤取量）:</strong> <span id="resultWeighAmount" style="font-weight: bold; font-size: 26px;">-</span> g</p>
+        </div>
+        
+    </div> <!-- 力価計算タブ終了 -->
 
     <script>
         // 薬剤データベース
@@ -633,14 +836,111 @@
         };
 
 
-        // 計算ボタンのイベントリスナー
+        // タブ切り替え機能
+        function switchTab(tabName) {
+            // すべてのタブコンテンツを非表示
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // すべてのタブボタンを非アクティブ
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => button.classList.remove('active'));
+            
+            // 選択されたタブを表示
+            document.getElementById(tabName).classList.add('active');
+            
+            // 対応するタブボタンをアクティブに
+            const activeButton = document.querySelector(`[onclick="switchTab('${tabName}')"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+            
+            // 結果を非表示にする
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('potencyResult').style.display = 'none';
+        }
+
+        // 力価計算機能
+        function calculatePotency() {
+            const concentration = parseFloat(document.getElementById('concentration').value);
+            const prescribedDose = parseFloat(document.getElementById('prescribedDose').value);
+            const doseUnit = document.getElementById('doseUnit').value;
+            const resultDiv = document.getElementById('potencyResult');
+            
+            // 入力チェック
+            if (isNaN(concentration) || concentration <= 0) {
+                alert('正しい濃度を入力してください（0より大きい数値）');
+                return;
+            }
+            
+            if (isNaN(prescribedDose) || prescribedDose <= 0) {
+                alert('正しい用量を入力してください（0より大きい数値）');
+                return;
+            }
+            
+            // 力価計算（単位に応じた計算）
+            let weighAmount;
+            let divisor;
+            
+            if (doseUnit === 'mg') {
+                // mg の場合: 秤取量（1日量）= 100 ÷ 薬剤の濃度(%) × 処方箋に記載の用量(mg) ÷ 1000
+                weighAmount = (100 / concentration) * prescribedDose / 1000;
+                divisor = '1000';
+            } else if (doseUnit === 'μg') {
+                // μg の場合: 秤取量（1日量）= 100 ÷ 薬剤の濃度(%) × 処方箋に記載の用量(μg) ÷ 1000000
+                weighAmount = (100 / concentration) * prescribedDose / 1000000;
+                divisor = '1000000';
+            }
+            
+            // 結果を表示
+            document.getElementById('resultConcentration').textContent = concentration.toFixed(2);
+            document.getElementById('resultPrescribedDose').textContent = prescribedDose.toFixed(1);
+            document.getElementById('resultDoseUnit').textContent = doseUnit;
+            document.getElementById('resultWeighAmount').textContent = weighAmount.toFixed(2);
+            
+            // 結果を表示
+            resultDiv.style.display = 'block';
+        }
+
+        // 力価計算でのEnterキーによる次フィールドへの移動
+        document.getElementById('concentration').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('prescribedDose').focus();
+            }
+        });
+        
+        document.getElementById('prescribedDose').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                calculatePotency();
+            }
+        });
+
+        // イベントリスナー
         document.getElementById('calculateBtn').addEventListener('click', calculateDose);
+        document.getElementById('calculatePotencyBtn').addEventListener('click', calculatePotency);
 
         // エンターキーでも計算できるように（フォーム全体で動作するように修正）
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
+                // 力価計算の個別フィールドの場合は処理をスキップ
+                const target = e.target;
+                if (target.id === 'concentration' || target.id === 'prescribedDose') {
+                    return; // 個別のイベントリスナーに任せる
+                }
+                
                 e.preventDefault();
-                calculateDose();
+                
+                // 現在アクティブなタブに応じて計算を実行
+                const activeDoseTab = document.getElementById('dose-calculator').classList.contains('active');
+                const activePotencyTab = document.getElementById('potency-calculator').classList.contains('active');
+                
+                if (activeDoseTab) {
+                    calculateDose();
+                } else if (activePotencyTab) {
+                    calculatePotency();
+                }
             }
         });
 
