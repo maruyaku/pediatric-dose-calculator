@@ -338,7 +338,7 @@
         /* クリアボタンのスタイル */
         .clear-button {
             position: absolute;
-            right: 8px;
+            right: 48px;
             background: none;
             color: #999;
             border: none;
@@ -370,6 +370,53 @@
             display: block;
         }
         
+        /* 音声入力ボタンのスタイル */
+        .voice-button {
+            position: absolute;
+            right: 8px;
+            width: 35px;
+            height: 35px;
+            background: #4CAF50;
+            border: none;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+        
+        .voice-button:hover {
+            background: #45a049;
+        }
+        
+        .voice-button:active {
+            background: #3d8b40;
+            transform: scale(0.95);
+        }
+        
+        .voice-button.recording {
+            background: #f44336;
+            animation: pulse 1s infinite;
+        }
+        
+        .voice-button.recording:hover {
+            background: #d32f2f;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .voice-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
         /* 選択ボックスの矢印スタイル */
         select {
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
@@ -399,6 +446,7 @@
         <div class="medicine-search-container">
             <input type="text" id="medicineSearch" placeholder="薬剤名を入力..." style="ime-mode: katakana;">
             <button type="button" class="clear-button" id="clearMedicineSearch" title="入力をクリア">×</button>
+            <button type="button" class="voice-button" id="voiceSearchButton" title="音声入力">🎤</button>
         </div>
         <div id="medicineList" style="display: none; border: 1px solid #ddd; border-radius: 5px; background: white; max-height: 200px; overflow-y: auto; margin-top: 5px;"></div>
         <input type="hidden" id="selectedMedicine" name="medicine">
@@ -993,6 +1041,14 @@
                 return String.fromCharCode(chr);
             });
         }
+        
+        // カタカナをひらがなに変換する関数
+        function katakanaToHiragana(str) {
+            return str.replace(/[\u30a1-\u30f6]/g, function(match) {
+                var chr = match.charCodeAt(0) - 0x60;
+                return String.fromCharCode(chr);
+            });
+        }
 
         let selectedIndex = -1;
         let currentOptions = [];
@@ -1007,6 +1063,119 @@
                 container.classList.remove('has-text');
             }
         }
+        
+        // 音声認識の変数
+        let recognition = null;
+        let isRecording = false;
+        
+        // 音声認識の初期化
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                
+                recognition.lang = 'ja-JP';
+                recognition.continuous = false;
+                recognition.interimResults = isMobile() ? true : false;  // スマホでは中間結果表示
+                recognition.maxAlternatives = 1;
+                
+                recognition.onstart = function() {
+                    isRecording = true;
+                    const voiceButton = document.getElementById('voiceSearchButton');
+                    voiceButton.classList.add('recording');
+                    voiceButton.title = '録音中...';
+                };
+                
+                recognition.onresult = function(event) {
+                    const searchInput = document.getElementById('medicineSearch');
+                    
+                    // 結果の存在チェック
+                    if (!event.results || !event.results[0] || !event.results[0][0]) {
+                        console.warn('音声認識結果が空です');
+                        return;
+                    }
+                    
+                    // スマホでは中間結果も表示
+                    if (isMobile() && event.results[0].isFinal === false) {
+                        const transcript = event.results[0][0].transcript;
+                        if (transcript.trim()) {  // 空文字チェック
+                            searchInput.value = transcript + '...';
+                            searchInput.style.color = '#999';  // 中間結果は薄く表示
+                        }
+                        return;
+                    }
+                    
+                    // 最終結果
+                    const result = event.results[0][0].transcript;
+                    if (result.trim()) {  // 空文字チェック
+                        searchInput.value = result;
+                        searchInput.style.color = '';  // 通常色に戻す
+                        
+                        // 検索を実行
+                        handleMedicineInput();
+                    } else {
+                        console.warn('音声認識結果が空文字です');
+                        searchInput.style.color = '';  // 色をリセット
+                    }
+                };
+                
+                recognition.onerror = function(event) {
+                    console.error('音声認識エラー:', event.error);
+                    stopRecording();
+                    
+                    if (event.error === 'not-allowed') {
+                        alert('マイクのアクセス許可が必要です。ブラウザの設定でマイクを有効にしてください。');
+                    } else if (event.error === 'no-speech') {
+                        alert('音声が検出されませんでした。もう一度お試しください。');
+                    } else {
+                        alert('音声認識でエラーが発生しました: ' + event.error);
+                    }
+                };
+                
+                recognition.onend = function() {
+                    stopRecording();
+                };
+                
+                return true;
+            }
+            return false;
+        }
+        
+        function stopRecording() {
+            isRecording = false;
+            const voiceButton = document.getElementById('voiceSearchButton');
+            const searchInput = document.getElementById('medicineSearch');
+            
+            voiceButton.classList.remove('recording');
+            voiceButton.title = '音声入力';
+            
+            // 中間結果表示中の場合、色をリセット
+            if (searchInput.style.color === 'rgb(153, 153, 153)' || searchInput.style.color === '#999') {
+                searchInput.style.color = '';
+            }
+        }
+        
+        // 音声入力ボタンのクリックイベント
+        document.getElementById('voiceSearchButton').addEventListener('click', function() {
+            if (!recognition) {
+                const isSupported = initSpeechRecognition();
+                if (!isSupported) {
+                    alert('お使いのブラウザは音声認識に対応していません。Chrome、Edge、Safariをお使いください。');
+                    return;
+                }
+            }
+            
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch (error) {
+                    console.error('音声認識開始エラー:', error);
+                    alert('音声認識を開始できませんでした。');
+                }
+            }
+        });
         
         // クリアボタンのクリックイベント
         document.getElementById('clearMedicineSearch').addEventListener('click', function() {
@@ -1066,6 +1235,11 @@
                 return;
             }
             
+            // 音声入力中の場合は処理をスキップ
+            if (isRecording) {
+                return;
+            }
+            
             handleMedicineInput();
         });
         
@@ -1073,17 +1247,8 @@
             const searchInput = document.getElementById('medicineSearch');
             let originalValue = searchInput.value;
             
-            // デスクトップではひらがなをカタカナに変換、スマホでは変換をスキップ
-            let convertedValue = originalValue;
-            if (!isMobile()) {
-                convertedValue = hiraganaToKatakana(originalValue);
-                // 入力フィールドの値をカタカナに更新（変換された場合のみ）
-                if (convertedValue !== originalValue) {
-                    searchInput.value = convertedValue;
-                }
-            }
-            
-            let searchTerm = convertedValue.toLowerCase();
+            // 検索語として使用する値（変換は検索時のみ行い、入力フィールドは変更しない）
+            let searchTerm = originalValue;
             const medicineList = document.getElementById('medicineList');
             selectedIndex = -1; // リセット
             
@@ -1097,9 +1262,29 @@
             }
             
             // 検索条件に合う薬剤を絞り込み
-            const filteredMedicines = allMedicines.filter(medicine => 
-                medicine.text.toLowerCase().includes(searchTerm)
-            );
+            const filteredMedicines = allMedicines.filter(medicine => {
+                const medicineText = medicine.text.toLowerCase();
+                const searchTermLower = searchTerm.toLowerCase();
+                
+                // 入力された文字列をそのまま検索
+                if (medicineText.includes(searchTermLower)) {
+                    return true;
+                }
+                
+                // ひらがなで入力された場合、カタカナに変換して検索
+                const katakanaSearchTerm = hiraganaToKatakana(searchTermLower);
+                if (medicineText.includes(katakanaSearchTerm.toLowerCase())) {
+                    return true;
+                }
+                
+                // カタカナで入力された場合、ひらがなに変換して検索
+                const hiraganaSearchTerm = katakanaToHiragana(searchTermLower);
+                if (medicineText.includes(hiraganaSearchTerm.toLowerCase())) {
+                    return true;
+                }
+                
+                return false;
+            });
             
             currentOptions = filteredMedicines;
             
