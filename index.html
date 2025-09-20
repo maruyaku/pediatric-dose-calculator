@@ -176,9 +176,9 @@
             box-shadow: 0 0 0 2px rgba(102, 187, 106, 0.2) !important;
         }
         
-        #calculateBtn {
-            background: #66BB6A !important;
-            color: white;
+        .calculate-button {
+            width: 100%;
+            height: 60px;
             border: none;
             border-radius: 10px;
             cursor: pointer;
@@ -186,8 +186,15 @@
             font-size: 22px;
             padding: 18px 20px;
             margin-top: 10px;
+            margin-bottom: 0;
             transition: background-color 0.3s;
             -webkit-tap-highlight-color: rgba(0,0,0,0);
+            box-sizing: border-box;
+        }
+
+        #calculateBtn {
+            background: #66BB6A !important;
+            color: white;
         }
         
         #calculateBtn:active {
@@ -239,15 +246,6 @@
         #calculatePotencyBtn {
             background: #BA68C8 !important;
             color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 22px;
-            padding: 18px 20px;
-            margin-top: 10px;
-            transition: background-color 0.3s;
-            -webkit-tap-highlight-color: rgba(0,0,0,0);
         }
         
         #calculatePotencyBtn:active {
@@ -483,7 +481,7 @@
         </select>
     </div>
     
-    <button id="calculateBtn">計算する</button>
+    <button id="calculateBtn" class="calculate-button">計算する</button>
     
     <div id="result">
         <h3>計算結果</h3>
@@ -517,7 +515,7 @@
             </div>
         </div>
         
-        <button id="calculatePotencyBtn">力価計算する</button>
+        <button id="calculatePotencyBtn" class="calculate-button">力価計算する</button>
         
         <div id="potencyResult" style="display: none; margin-top: 25px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
             <h3>力価計算結果</h3>
