@@ -185,11 +185,20 @@
             font-weight: bold;
             font-size: 22px;
             padding: 18px 20px;
-            margin-top: 10px;
-            margin-bottom: 0;
+            margin: 10px 0 0 0;
             transition: background-color 0.3s;
             -webkit-tap-highlight-color: rgba(0,0,0,0);
             box-sizing: border-box;
+            position: relative;
+            display: block;
+            text-align: center;
+        }
+        
+        /* ボタンコンテナの固定 */
+        .button-container {
+            min-height: 80px;
+            padding: 0;
+            margin: 0;
         }
 
         #calculateBtn {
@@ -481,7 +490,9 @@
         </select>
     </div>
     
-    <button id="calculateBtn" class="calculate-button">計算する</button>
+    <div class="button-container">
+        <button id="calculateBtn" class="calculate-button">計算する</button>
+    </div>
     
     <div id="result">
         <h3>計算結果</h3>
@@ -515,7 +526,9 @@
             </div>
         </div>
         
-        <button id="calculatePotencyBtn" class="calculate-button">力価計算する</button>
+        <div class="button-container">
+            <button id="calculatePotencyBtn" class="calculate-button">力価計算する</button>
+        </div>
         
         <div id="potencyResult" style="display: none; margin-top: 25px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
             <h3>力価計算結果</h3>
